@@ -15,6 +15,57 @@ MENU_ITEMS = {
     5: "종료",
 }
 
+# 모든 퀴즈는 4개의 선택지를 가진다.
+CHOICE_COUNT = 4
+
+
+class Quiz:
+    """퀴즈 한 문제를 나타내는 클래스.
+
+    속성:
+        question (str): 문제 내용
+        choices (list[str]): 선택지 4개
+        answer (int): 정답 번호 (1~4)
+    """
+
+    def __init__(self, question, choices, answer):
+        question = question.strip()
+        choices = [choice.strip() for choice in choices]
+
+        if not question:
+            raise ValueError("문제 내용은 비어 있을 수 없습니다.")
+        if len(choices) != CHOICE_COUNT:
+            raise ValueError(f"선택지는 {CHOICE_COUNT}개여야 합니다. (입력: {len(choices)}개)")
+        if any(not choice for choice in choices):
+            raise ValueError("선택지는 비어 있을 수 없습니다.")
+        if not isinstance(answer, int) or not 1 <= answer <= CHOICE_COUNT:
+            raise ValueError(f"정답 번호는 1~{CHOICE_COUNT} 중 하나여야 합니다. (입력: {answer})")
+
+        self.question = question
+        self.choices = choices
+        self.answer = answer
+
+    def show(self, number=None):
+        """문제와 선택지를 화면에 출력한다.
+
+        number 를 주면 '3번 문제' 처럼 문제 번호를 함께 보여준다.
+        """
+        header = f"[{number}번 문제] " if number is not None else ""
+        print(f"{header}{self.question}")
+        for index, choice in enumerate(self.choices, start=1):
+            print(f"   {index}) {choice}")
+
+    def is_correct(self, choice):
+        """입력한 번호가 정답이면 True 를 돌려준다."""
+        return choice == self.answer
+
+    def answer_text(self):
+        """정답 선택지의 내용을 돌려준다."""
+        return self.choices[self.answer - 1]
+
+    def __str__(self):
+        return f"{self.question} (정답: {self.answer}번 {self.answer_text()})"
+
 
 def show_menu():
     """메뉴를 화면에 출력한다."""
