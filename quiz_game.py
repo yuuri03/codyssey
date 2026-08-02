@@ -67,6 +67,57 @@ class Quiz:
         return f"{self.question} (정답: {self.answer}번 {self.answer_text()})"
 
 
+# 기본으로 제공되는 파이썬 기초 문제.
+# (문제, 선택지 4개, 정답 번호) 형태로 적어 두고 Quiz 인스턴스로 만든다.
+DEFAULT_QUIZ_DATA = [
+    (
+        "파이썬에서 리스트를 만들 때 사용하는 괄호는?",
+        ["{ }", "[ ]", "( )", "< >"],
+        2,
+    ),
+    (
+        "문자열이나 리스트의 길이를 구하는 내장 함수는?",
+        ["len()", "length()", "size()", "count()"],
+        1,
+    ),
+    (
+        "파이썬에서 한 줄 주석을 쓸 때 사용하는 기호는?",
+        ["//", "/* */", "#", "--"],
+        3,
+    ),
+    (
+        "나눗셈의 몫만 정수로 구하는 연산자는?",
+        ["/", "%", "**", "//"],
+        4,
+    ),
+    (
+        "딕셔너리에 들어 있는 모든 키를 꺼내는 메서드는?",
+        ["get()", "keys()", "values()", "items()"],
+        2,
+    ),
+    (
+        "예외(오류)를 처리할 때 사용하는 키워드 조합은?",
+        ["if - else", "for - in", "try - except", "def - return"],
+        3,
+    ),
+    (
+        "다음 중 한 번 만들면 내용을 바꿀 수 없는 자료형은?",
+        ["list", "dict", "set", "tuple"],
+        4,
+    ),
+    (
+        "input() 함수가 돌려주는 값의 자료형은?",
+        ["int", "str", "float", "list"],
+        2,
+    ),
+]
+
+
+def default_quizzes():
+    """기본 퀴즈 데이터를 Quiz 인스턴스 목록으로 만들어 돌려준다."""
+    return [Quiz(question, choices, answer) for question, choices, answer in DEFAULT_QUIZ_DATA]
+
+
 def show_menu():
     """메뉴를 화면에 출력한다."""
     print()
