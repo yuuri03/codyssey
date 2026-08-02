@@ -118,17 +118,6 @@ def default_quizzes():
     return [Quiz(question, choices, answer) for question, choices, answer in DEFAULT_QUIZ_DATA]
 
 
-def show_menu():
-    """메뉴를 화면에 출력한다."""
-    print()
-    print("=" * 40)
-    print(f"  {TITLE}")
-    print("=" * 40)
-    for number, name in MENU_ITEMS.items():
-        print(f"  {number}. {name}")
-    print("-" * 40)
-
-
 def ask_int(prompt, low, high):
     """`low` 이상 `high` 이하의 정수를 입력받아 돌려준다.
 
@@ -174,20 +163,69 @@ def read_menu_choice():
     return ask_int("번호를 선택하세요: ", 1, len(MENU_ITEMS))
 
 
+class QuizGame:
+    """게임 전체를 관리하는 클래스.
+
+    속성:
+        quizzes (list[Quiz]): 현재 가지고 있는 퀴즈 목록
+        best_score (int): 지금까지의 최고 점수(맞힌 문제 수)
+    """
+
+    def __init__(self):
+        self.quizzes = default_quizzes()
+        self.best_score = 0
+
+    def show_menu(self):
+        """메뉴를 화면에 출력한다."""
+        print()
+        print("=" * 40)
+        print(f"  {TITLE}")
+        print("=" * 40)
+        for number, name in MENU_ITEMS.items():
+            print(f"  {number}. {name}")
+        print("-" * 40)
+
+    def play_quiz(self):
+        """퀴즈를 출제하고 채점한다."""
+        print("[알림] 퀴즈 풀기 기능은 아직 준비 중입니다.")
+
+    def add_quiz(self):
+        """새로운 퀴즈를 등록한다."""
+        print("[알림] 퀴즈 추가 기능은 아직 준비 중입니다.")
+
+    def show_quiz_list(self):
+        """저장된 퀴즈 목록을 보여준다."""
+        print("[알림] 퀴즈 목록 기능은 아직 준비 중입니다.")
+
+    def show_best_score(self):
+        """최고 점수를 보여준다."""
+        print("[알림] 점수 확인 기능은 아직 준비 중입니다.")
+
+    def run(self):
+        """메뉴를 반복해서 보여주며 게임을 진행한다."""
+        print(f"{TITLE}에 오신 것을 환영합니다!")
+
+        while True:
+            self.show_menu()
+            choice = read_menu_choice()
+
+            if choice == 1:
+                self.play_quiz()
+            elif choice == 2:
+                self.add_quiz()
+            elif choice == 3:
+                self.show_quiz_list()
+            elif choice == 4:
+                self.show_best_score()
+            elif choice == 5:
+                print("게임을 종료합니다. 수고하셨습니다!")
+                break
+
+
 def main():
-    """프로그램의 시작점. 메뉴를 반복해서 보여준다."""
-    print(f"{TITLE}에 오신 것을 환영합니다!")
-
-    while True:
-        show_menu()
-        choice = read_menu_choice()
-
-        if choice == 5:
-            print("게임을 종료합니다. 수고하셨습니다!")
-            break
-
-        # 나머지 기능은 다음 단계에서 구현한다.
-        print(f"[알림] '{MENU_ITEMS[choice]}' 기능은 아직 준비 중입니다.")
+    """프로그램의 시작점."""
+    game = QuizGame()
+    game.run()
 
 
 if __name__ == "__main__":
