@@ -85,13 +85,14 @@ Windows 에서 `python` 이 잡히지 않으면 `py quiz_game.py` 로 실행합�
 저장소는 미션별 폴더로 나뉘어 있고, 이 미션은 `python-quiz-game/` 폴더입니다.
 
 ```
-codyssey/                  # 저장소 루트
-├── .gitignore             # state.json 등 추적 제외 규칙 (저장소 공통)
-├── README.md              # 저장소 전체 안내
-└── python-quiz-game/      # ← 이 미션
-    ├── quiz_game.py       # 프로그램 전체 (Quiz, QuizGame 클래스와 입력 헬퍼)
-    ├── state.json         # 퀴즈 목록과 최고 점수 저장 파일 (실행 시 자동 생성, git 추적 제외)
-    └── README.md          # 이 문서
+codyssey/                    # 저장소 루트
+├── .gitignore               # state.json 등 추적 제외 규칙 (저장소 공통)
+├── README.md                # 저장소 전체 안내
+├── python-quiz-game/        # ← 이 미션
+│   ├── quiz_game.py         # 프로그램 전체 (Quiz, QuizGame 클래스와 입력 헬퍼)
+│   ├── state.json           # 퀴즈 목록과 최고 점수 저장 파일 (실행 시 자동 생성, git 추적 제외)
+│   └── README.md            # 이 문서
+└── mini-npu-simulator/      # 다른 미션
 ```
 
 ### `quiz_game.py` 구성
@@ -105,8 +106,9 @@ codyssey/                  # 저장소 루트
 | 함수 | `default_quizzes()` | 기본 문항 데이터를 `Quiz` 목록으로 변환 |
 | 함수 | `main()`, `finish_early()` | 시작점과 중단 시 안전 종료 처리 |
 
-`STATE_FILE` 은 `__file__` 기준으로 경로를 만들기 때문에, 어느 디렉터리에서 실행해도
-항상 프로젝트 루트의 `state.json` 을 가리킵니다.
+`STATE_FILE` 은 `__file__`(소스 파일 위치) 기준으로 경로를 만듭니다.
+그래서 어느 디렉터리에서 실행하든 항상 `quiz_game.py` 옆의
+`python-quiz-game/state.json` 을 가리킵니다.
 
 ## 데이터 파일 설명 (`state.json`)
 
