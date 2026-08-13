@@ -242,8 +242,28 @@ class QuizGame:
         print("-" * 40)
 
     def add_quiz(self):
-        """새로운 퀴즈를 등록한다."""
-        print("[알림] 퀴즈 추가 기능은 아직 준비 중입니다.")
+        """새로운 퀴즈를 입력받아 등록한다.
+
+        등록에 성공하면 만들어진 Quiz 를, 실패하면 None 을 돌려준다.
+        """
+        print()
+        print("새로운 퀴즈를 추가합니다.")
+
+        question = ask_text("문제를 입력하세요: ")
+        choices = [ask_text(f"선택지 {number}: ") for number in range(1, CHOICE_COUNT + 1)]
+        answer = ask_int(f"정답 번호 (1~{CHOICE_COUNT}): ", 1, CHOICE_COUNT)
+
+        # ask_text / ask_int 가 형식은 걸러 주지만, 중복 선택지처럼
+        # Quiz 가 판단할 문제도 있으므로 생성 단계에서 한 번 더 확인한다.
+        try:
+            quiz = Quiz(question, choices, answer)
+        except ValueError as error:
+            print(f"[안내] 퀴즈를 추가하지 못했습니다. {error}")
+            return None
+
+        self.quizzes.append(quiz)
+        print(f"[알림] 퀴즈가 추가되었습니다. (현재 총 {len(self.quizzes)}문제)")
+        return quiz
 
     def show_quiz_list(self):
         """저장된 퀴즈 목록을 보여준다."""
