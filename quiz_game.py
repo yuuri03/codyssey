@@ -458,15 +458,35 @@ class QuizGame:
             elif choice == 4:
                 self.show_best_score()
             elif choice == 5:
+                self.save()
                 print("게임을 종료합니다. 수고하셨습니다!")
                 break
 
 
 def main():
-    """프로그램의 시작점."""
+    """프로그램의 시작점.
+
+    Ctrl+C(KeyboardInterrupt) 나 입력 스트림 종료(EOFError) 로 게임이 끊겨도
+    파이썬 오류 메시지를 그대로 띄우지 않고, 지금까지의 내용을 저장한 뒤 종료한다.
+    """
     game = QuizGame()
     game.load()
-    game.run()
+
+    try:
+        game.run()
+    except KeyboardInterrupt:
+        finish_early(game, "Ctrl+C 가 입력되어")
+    except EOFError:
+        finish_early(game, "입력이 더 이상 들어오지 않아")
+
+
+def finish_early(game, reason):
+    """게임이 중간에 끊겼을 때 안내하고 안전하게 마무리한다."""
+    print()
+    print(f"[안내] {reason} 게임을 중단합니다.")
+    if game.save():
+        print("[알림] 지금까지의 퀴즈와 최고 점수를 저장했습니다.")
+    print("게임을 종료합니다. 수고하셨습니다!")
 
 
 if __name__ == "__main__":
