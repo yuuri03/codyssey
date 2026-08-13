@@ -143,3 +143,8 @@ python-quiz-game/
 ```
 
 저장 파일을 지우면 기본 퀴즈 10문항 상태로 되돌아갑니다.
+
+## 저장소
+
+- GitHub: https://github.com/yuuri03/codyssey
+- 이 프로젝트는 Codyssey 입학연수 '개발 입문' 미션으로 만들었습니다.
