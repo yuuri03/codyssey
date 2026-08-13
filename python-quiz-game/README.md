@@ -82,12 +82,16 @@ Windows 에서 `python` 이 잡히지 않으면 `py quiz_game.py` 로 실행합�
 
 ## 파일 구조
 
+저장소는 미션별 폴더로 나뉘어 있고, 이 미션은 `python-quiz-game/` 폴더입니다.
+
 ```
-python-quiz-game/
-├── quiz_game.py     # 프로그램 전체 (Quiz, QuizGame 클래스와 입력 헬퍼)
-├── state.json       # 퀴즈 목록과 최고 점수 저장 파일 (실행 시 자동 생성, git 추적 제외)
-├── .gitignore
-└── README.md
+codyssey/                  # 저장소 루트
+├── .gitignore             # state.json 등 추적 제외 규칙 (저장소 공통)
+├── README.md              # 저장소 전체 안내
+└── python-quiz-game/      # ← 이 미션
+    ├── quiz_game.py       # 프로그램 전체 (Quiz, QuizGame 클래스와 입력 헬퍼)
+    ├── state.json         # 퀴즈 목록과 최고 점수 저장 파일 (실행 시 자동 생성, git 추적 제외)
+    └── README.md          # 이 문서
 ```
 
 ### `quiz_game.py` 구성
@@ -106,7 +110,8 @@ python-quiz-game/
 
 ## 데이터 파일 설명 (`state.json`)
 
-- **경로**: 프로젝트 루트 `./state.json`
+- **경로**: 이 프로젝트 폴더의 루트 `python-quiz-game/state.json`
+  (`quiz_game.py` 와 같은 위치)
 - **인코딩**: UTF-8 (`ensure_ascii=False` 로 한글을 그대로 저장)
 - **역할**: 퀴즈 목록과 최고 점수를 담아 프로그램을 껐다 켜도 유지되게 합니다.
 - **생성 시점**: 첫 실행에는 없으며, 퀴즈를 추가하거나 최고 점수가 갱신되거나
