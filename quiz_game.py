@@ -266,8 +266,18 @@ class QuizGame:
         return quiz
 
     def show_quiz_list(self):
-        """저장된 퀴즈 목록을 보여준다."""
-        print("[알림] 퀴즈 목록 기능은 아직 준비 중입니다.")
+        """저장된 퀴즈 목록을 문제 번호와 함께 보여준다."""
+        print()
+        if not self.quizzes:
+            print("[안내] 등록된 퀴즈가 없습니다. 먼저 '2. 퀴즈 추가' 로 문제를 등록해 주세요.")
+            return
+
+        print("=" * 40)
+        print(f"  등록된 퀴즈 목록 (총 {len(self.quizzes)}문제)")
+        print("=" * 40)
+        for number, quiz in enumerate(self.quizzes, start=1):
+            print(f"  [{number}] {quiz.question}")
+        print("-" * 40)
 
     def show_best_score(self):
         """최고 점수를 보여준다."""
