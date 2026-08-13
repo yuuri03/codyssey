@@ -183,7 +183,9 @@ class QuizGame:
 
     def __init__(self):
         self.quizzes = default_quizzes()
-        self.best_score = 0
+        # 아직 한 번도 퀴즈를 풀지 않았으면 None 이다.
+        # 0 은 '풀었지만 한 문제도 못 맞힌 기록' 이므로 둘을 구분한다.
+        self.best_score = None
 
     def show_menu(self):
         """메뉴를 화면에 출력한다."""
@@ -221,10 +223,14 @@ class QuizGame:
             else:
                 print(f"  -> 오답입니다. 정답은 {quiz.answer}번 ({quiz.answer_text()}) 입니다.")
 
-        self.show_result(score, total)
+        is_best = self.best_score is None or score > self.best_score
+        if is_best:
+            self.best_score = score
+
+        self.show_result(score, total, is_best)
         return score
 
-    def show_result(self, score, total):
+    def show_result(self, score, total, is_best=False):
         """퀴즈를 모두 푼 뒤 결과를 보여준다."""
         percent = round(score / total * 100)
         print()
@@ -239,6 +245,9 @@ class QuizGame:
             print("  잘하셨습니다. 조금만 더 하면 만점이에요.")
         else:
             print("  아쉽네요. 틀린 문제를 다시 확인해 보세요.")
+
+        if is_best:
+            print("  새로운 최고 점수입니다!")
         print("-" * 40)
 
     def add_quiz(self):
@@ -280,8 +289,16 @@ class QuizGame:
         print("-" * 40)
 
     def show_best_score(self):
-        """최고 점수를 보여준다."""
-        print("[알림] 점수 확인 기능은 아직 준비 중입니다.")
+        """지금까지의 최고 점수를 보여준다."""
+        print()
+        print("=" * 40)
+        print("  최고 점수")
+        print("=" * 40)
+        if self.best_score is None:
+            print("  아직 퀴즈를 풀지 않았습니다. '1. 퀴즈 풀기' 로 도전해 보세요.")
+        else:
+            print(f"  최고 기록: {self.best_score}문제 정답")
+        print("-" * 40)
 
     def run(self):
         """메뉴를 반복해서 보여주며 게임을 진행한다."""
