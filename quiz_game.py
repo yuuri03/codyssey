@@ -46,6 +46,9 @@ class Quiz:
             raise ValueError(f"선택지는 {CHOICE_COUNT}개여야 합니다. (입력: {len(choices)}개)")
         if any(not choice for choice in choices):
             raise ValueError("선택지는 비어 있을 수 없습니다.")
+        # 같은 내용의 선택지가 둘 이상이면 정답이 하나로 정해지지 않는다.
+        if len(set(choices)) != len(choices):
+            raise ValueError("선택지는 서로 달라야 합니다.")
         if not isinstance(answer, int) or not 1 <= answer <= CHOICE_COUNT:
             raise ValueError(f"정답 번호는 1~{CHOICE_COUNT} 중 하나여야 합니다. (입력: {answer})")
 
