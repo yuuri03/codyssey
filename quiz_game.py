@@ -186,8 +186,50 @@ class QuizGame:
         print("-" * 40)
 
     def play_quiz(self):
-        """퀴즈를 출제하고 채점한다."""
-        print("[알림] 퀴즈 풀기 기능은 아직 준비 중입니다.")
+        """저장된 퀴즈를 차례대로 출제하고 채점한다.
+
+        맞힌 문제 수를 돌려준다. 풀 퀴즈가 없으면 None 을 돌려준다.
+        """
+        if not self.quizzes:
+            print()
+            print("[안내] 등록된 퀴즈가 없습니다. 먼저 '2. 퀴즈 추가' 로 문제를 등록해 주세요.")
+            return None
+
+        total = len(self.quizzes)
+        print()
+        print(f"총 {total}문제를 풉니다. 1~{CHOICE_COUNT} 중에서 정답 번호를 입력하세요.")
+
+        score = 0
+        for number, quiz in enumerate(self.quizzes, start=1):
+            print()
+            quiz.show(number)
+            choice = ask_int("정답 번호: ", 1, CHOICE_COUNT)
+
+            if quiz.is_correct(choice):
+                score += 1
+                print("  -> 정답입니다!")
+            else:
+                print(f"  -> 오답입니다. 정답은 {quiz.answer}번 ({quiz.answer_text()}) 입니다.")
+
+        self.show_result(score, total)
+        return score
+
+    def show_result(self, score, total):
+        """퀴즈를 모두 푼 뒤 결과를 보여준다."""
+        percent = round(score / total * 100)
+        print()
+        print("=" * 40)
+        print("  퀴즈 결과")
+        print("=" * 40)
+        print(f"  총 {total}문제 중 {score}문제를 맞혔습니다. (정답률 {percent}%)")
+
+        if score == total:
+            print("  만점입니다! 훌륭합니다.")
+        elif percent >= 60:
+            print("  잘하셨습니다. 조금만 더 하면 만점이에요.")
+        else:
+            print("  아쉽네요. 틀린 문제를 다시 확인해 보세요.")
+        print("-" * 40)
 
     def add_quiz(self):
         """새로운 퀴즈를 등록한다."""
