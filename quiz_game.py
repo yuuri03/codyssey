@@ -4,7 +4,15 @@
 `python quiz_game.py` 로 실행한다.
 """
 
+import json
+import os
+
 TITLE = "뮤지컬 퀴즈 게임"
+
+# 퀴즈 목록과 최고 점수를 저장할 파일.
+# 어느 위치에서 실행하든 프로젝트 루트를 가리키도록
+# 이 소스 파일이 있는 디렉터리를 기준으로 경로를 만든다.
+STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json")
 
 # 메뉴 번호 -> 화면에 보여줄 이름
 MENU_ITEMS = {
@@ -62,6 +70,42 @@ class Quiz:
     def answer_text(self):
         """정답 선택지의 내용을 돌려준다."""
         return self.choices[self.answer - 1]
+
+    def to_dict(self):
+        """JSON 으로 저장할 수 있는 딕셔너리 형태로 바꾼다."""
+        return {
+            "question": self.question,
+            "choices": list(self.choices),
+            "answer": self.answer,
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        """저장 파일에서 읽은 딕셔너리로 Quiz 를 만든다.
+
+        형식이 맞지 않으면 ValueError 를 일으킨다.
+        값의 범위 검사는 __init__ 이 다시 한 번 수행한다.
+        """
+        if not isinstance(data, dict):
+            raise ValueError("퀴즈 하나는 딕셔너리 형태여야 합니다.")
+
+        for key in ("question", "choices", "answer"):
+            if key not in data:
+                raise ValueError(f"퀴즈에 '{key}' 항목이 없습니다.")
+
+        question = data["question"]
+        choices = data["choices"]
+        answer = data["answer"]
+
+        if not isinstance(question, str):
+            raise ValueError("문제 내용은 문자열이어야 합니다.")
+        if not isinstance(choices, list) or any(not isinstance(item, str) for item in choices):
+            raise ValueError("선택지는 문자열 목록이어야 합니다.")
+        # JSON 의 true/false 는 파이썬에서 int 로도 취급되므로 bool 을 먼저 걸러 낸다.
+        if isinstance(answer, bool) or not isinstance(answer, int):
+            raise ValueError("정답 번호는 정수여야 합니다.")
+
+        return cls(question, choices, answer)
 
     def __str__(self):
         return f"{self.question} (정답: {self.answer}번 {self.answer_text()})"
@@ -178,7 +222,8 @@ class QuizGame:
 
     속성:
         quizzes (list[Quiz]): 현재 가지고 있는 퀴즈 목록
-        best_score (int): 지금까지의 최고 점수(맞힌 문제 수)
+        best_score (int | None): 지금까지의 최고 점수(맞힌 문제 수).
+            아직 한 번도 풀지 않았으면 None 이다.
     """
 
     def __init__(self):
@@ -186,6 +231,100 @@ class QuizGame:
         # 아직 한 번도 퀴즈를 풀지 않았으면 None 이다.
         # 0 은 '풀었지만 한 문제도 못 맞힌 기록' 이므로 둘을 구분한다.
         self.best_score = None
+
+    def to_state(self):
+        """저장 파일에 쓸 딕셔너리를 만든다."""
+        return {
+            "quizzes": [quiz.to_dict() for quiz in self.quizzes],
+            "best_score": self.best_score,
+        }
+
+    def save(self):
+        """현재 퀴즈 목록과 최고 점수를 state.json 에 저장한다.
+
+        저장에 성공하면 True, 실패하면 False 를 돌려준다.
+        저장에 실패해도 게임은 계속 진행할 수 있어야 하므로 예외를 밖으로 던지지 않는다.
+        """
+        try:
+            with open(STATE_FILE, "w", encoding="utf-8") as file:
+                json.dump(self.to_state(), file, ensure_ascii=False, indent=2)
+        except OSError as error:
+            print(f"[안내] 저장에 실패했습니다. 변경 내용이 남지 않을 수 있습니다. ({error})")
+            return False
+        return True
+
+    def load(self):
+        """state.json 에서 퀴즈 목록과 최고 점수를 불러온다.
+
+        불러오기에 성공하면 True 를 돌려준다.
+        파일이 없거나 손상된 경우에는 안내 메시지를 출력하고 False 를 돌려주며,
+        이때 퀴즈 목록은 __init__ 이 만들어 둔 기본 퀴즈가 그대로 유지된다.
+        """
+        try:
+            with open(STATE_FILE, "r", encoding="utf-8") as file:
+                state = json.load(file)
+        except FileNotFoundError:
+            print("[안내] 저장된 데이터가 없습니다. 기본 퀴즈로 시작합니다.")
+            return False
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            print("[안내] 저장 파일이 손상되어 읽을 수 없습니다. 기본 퀴즈로 시작합니다.")
+            return False
+        except OSError as error:
+            print(f"[안내] 저장 파일을 읽지 못했습니다. 기본 퀴즈로 시작합니다. ({error})")
+            return False
+
+        if not isinstance(state, dict):
+            print("[안내] 저장 파일의 형식이 올바르지 않습니다. 기본 퀴즈로 시작합니다.")
+            return False
+
+        quizzes = self.read_quizzes(state.get("quizzes"))
+        if not quizzes:
+            print("[안내] 불러올 수 있는 퀴즈가 없습니다. 기본 퀴즈로 시작합니다.")
+            return False
+
+        self.quizzes = quizzes
+        self.best_score = self.read_best_score(state.get("best_score"))
+
+        best_text = "없음" if self.best_score is None else f"{self.best_score}문제 정답"
+        print(f"[알림] 저장된 데이터를 불러왔습니다. (퀴즈 {len(self.quizzes)}개, 최고 기록 {best_text})")
+        return True
+
+    @staticmethod
+    def read_quizzes(raw_quizzes):
+        """저장 파일에서 읽은 퀴즈 목록을 Quiz 목록으로 바꾼다.
+
+        형식이 깨진 항목은 건너뛰고, 살아남은 퀴즈만 돌려준다.
+        """
+        if not isinstance(raw_quizzes, list):
+            return []
+
+        quizzes = []
+        skipped = 0
+        for raw_quiz in raw_quizzes:
+            try:
+                quizzes.append(Quiz.from_dict(raw_quiz))
+            except ValueError:
+                skipped += 1
+
+        if skipped:
+            print(f"[안내] 형식이 올바르지 않은 퀴즈 {skipped}개를 건너뛰었습니다.")
+        return quizzes
+
+    @staticmethod
+    def read_best_score(raw_best_score):
+        """저장 파일에서 읽은 최고 점수를 검사해 돌려준다.
+
+        기록이 없거나 값이 이상하면 None 을 돌려준다.
+        """
+        if raw_best_score is None:
+            return None
+        if isinstance(raw_best_score, bool) or not isinstance(raw_best_score, int):
+            print("[안내] 최고 점수 기록이 올바르지 않아 초기화합니다.")
+            return None
+        if raw_best_score < 0:
+            print("[안내] 최고 점수 기록이 올바르지 않아 초기화합니다.")
+            return None
+        return raw_best_score
 
     def show_menu(self):
         """메뉴를 화면에 출력한다."""
@@ -226,6 +365,7 @@ class QuizGame:
         is_best = self.best_score is None or score > self.best_score
         if is_best:
             self.best_score = score
+            self.save()
 
         self.show_result(score, total, is_best)
         return score
@@ -271,6 +411,7 @@ class QuizGame:
             return None
 
         self.quizzes.append(quiz)
+        self.save()
         print(f"[알림] 퀴즈가 추가되었습니다. (현재 총 {len(self.quizzes)}문제)")
         return quiz
 
@@ -324,6 +465,7 @@ class QuizGame:
 def main():
     """프로그램의 시작점."""
     game = QuizGame()
+    game.load()
     game.run()
 
 
