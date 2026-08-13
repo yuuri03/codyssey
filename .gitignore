@@ -18,9 +18,10 @@ env/
 state.json
 state.json.bak
 
-# ── 편집기 / OS ─────────────────────────────────────────
+# ── 편집기 / 개발 도구 / OS ──────────────────────────────
 .vscode/
 .idea/
+.omc/
 *.swp
 Thumbs.db
 desktop.ini
