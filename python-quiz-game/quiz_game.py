@@ -14,6 +14,10 @@ TITLE = "뮤지컬 퀴즈 게임"
 # 이 소스 파일이 있는 디렉터리를 기준으로 경로를 만든다.
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json")
 
+# 저장하다가 멈춰도 직전 내용이 남도록 백업과 임시 파일을 함께 쓴다.
+BACKUP_FILE = STATE_FILE + ".bak"
+TEMP_FILE = STATE_FILE + ".tmp"
+
 # 메뉴 번호 -> 화면에 보여줄 이름
 MENU_ITEMS = {
     1: "퀴즈 풀기",
@@ -247,42 +251,81 @@ class QuizGame:
 
         저장에 성공하면 True, 실패하면 False 를 돌려준다.
         저장에 실패해도 게임은 계속 진행할 수 있어야 하므로 예외를 밖으로 던지지 않는다.
+
+        state.json 을 곧바로 열어서 쓰면, 쓰는 도중에 프로그램이 멈췄을 때
+        반쯤 쓰인 파일만 남아 이전 내용까지 함께 사라진다.
+        그래서 임시 파일에 먼저 다 쓴 뒤 이름을 바꿔 끼우고,
+        직전 파일은 state.json.bak 으로 옮겨 한 세대 남겨 둔다.
         """
         try:
-            with open(STATE_FILE, "w", encoding="utf-8") as file:
+            with open(TEMP_FILE, "w", encoding="utf-8") as file:
                 json.dump(self.to_state(), file, ensure_ascii=False, indent=2)
+            if os.path.exists(STATE_FILE):
+                os.replace(STATE_FILE, BACKUP_FILE)
+            os.replace(TEMP_FILE, STATE_FILE)
         except OSError as error:
             print(f"[안내] 저장에 실패했습니다. 변경 내용이 남지 않을 수 있습니다. ({error})")
+            self.remove_temp_file()
             return False
         return True
+
+    @staticmethod
+    def remove_temp_file():
+        """저장에 실패해 남은 임시 파일을 지운다.
+
+        지우지 못해도 다음 저장 때 덮어쓰므로 오류를 밖으로 알리지 않는다.
+        """
+        try:
+            os.remove(TEMP_FILE)
+        except OSError:
+            pass
 
     def load(self):
         """state.json 에서 퀴즈 목록과 최고 점수를 불러온다.
 
-        불러오기에 성공하면 True 를 돌려준다.
-        파일이 없거나 손상된 경우에는 안내 메시지를 출력하고 False 를 돌려주며,
+        본 파일을 읽지 못하면 백업 파일로 한 번 더 시도한다.
+        둘 다 실패하면 안내 메시지를 출력하고 False 를 돌려주며,
         이때 퀴즈 목록은 __init__ 이 만들어 둔 기본 퀴즈가 그대로 유지된다.
         """
+        if self.load_from(STATE_FILE):
+            return True
+
+        if os.path.exists(BACKUP_FILE):
+            print("[안내] 백업 파일로 다시 시도합니다.")
+            if self.load_from(BACKUP_FILE):
+                # 살려 낸 내용을 본 파일 자리에 되돌려 놓는다.
+                self.save()
+                return True
+
+        print("[안내] 기본 퀴즈로 시작합니다.")
+        return False
+
+    def load_from(self, path):
+        """주어진 파일에서 퀴즈 목록과 최고 점수를 읽어 채운다.
+
+        읽어서 채우는 데 성공하면 True, 실패하면 False 를 돌려준다.
+        실패한 경우 퀴즈 목록과 최고 점수는 건드리지 않는다.
+        """
         try:
-            with open(STATE_FILE, "r", encoding="utf-8") as file:
+            with open(path, "r", encoding="utf-8") as file:
                 state = json.load(file)
         except FileNotFoundError:
-            print("[안내] 저장된 데이터가 없습니다. 기본 퀴즈로 시작합니다.")
+            print("[안내] 저장된 데이터가 없습니다.")
             return False
         except (json.JSONDecodeError, UnicodeDecodeError):
-            print("[안내] 저장 파일이 손상되어 읽을 수 없습니다. 기본 퀴즈로 시작합니다.")
+            print("[안내] 저장 파일이 손상되어 읽을 수 없습니다.")
             return False
         except OSError as error:
-            print(f"[안내] 저장 파일을 읽지 못했습니다. 기본 퀴즈로 시작합니다. ({error})")
+            print(f"[안내] 저장 파일을 읽지 못했습니다. ({error})")
             return False
 
         if not isinstance(state, dict):
-            print("[안내] 저장 파일의 형식이 올바르지 않습니다. 기본 퀴즈로 시작합니다.")
+            print("[안내] 저장 파일의 형식이 올바르지 않습니다.")
             return False
 
         quizzes = self.read_quizzes(state.get("quizzes"))
         if not quizzes:
-            print("[안내] 불러올 수 있는 퀴즈가 없습니다. 기본 퀴즈로 시작합니다.")
+            print("[안내] 불러올 수 있는 퀴즈가 없습니다.")
             return False
 
         self.quizzes = quizzes
