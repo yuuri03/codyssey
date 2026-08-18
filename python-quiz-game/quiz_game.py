@@ -263,7 +263,9 @@ class QuizGame:
             if os.path.exists(STATE_FILE):
                 os.replace(STATE_FILE, BACKUP_FILE)
             os.replace(TEMP_FILE, STATE_FILE)
-        except OSError as error:
+        except (OSError, UnicodeEncodeError) as error:
+            # OSError 는 디스크나 권한 문제, UnicodeEncodeError 는 입력받은 글자를
+            # UTF-8 로 옮길 수 없는 경우다. 어느 쪽이든 게임은 계속할 수 있어야 한다.
             print(f"[안내] 저장에 실패했습니다. 변경 내용이 남지 않을 수 있습니다. ({error})")
             self.remove_temp_file()
             return False
