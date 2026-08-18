@@ -202,6 +202,40 @@ flowchart LR
 | | `read_quizzes()` / `read_best_score()` 읽은 값 검사 |
 | | `run()` 메뉴 반복 |
 
+코드에 있는 속성과 메서드를 그대로 옮기면 이렇게 돼요.
+
+```mermaid
+classDiagram
+    class Quiz {
+        +question : str
+        +choices : list
+        +answer : int
+        +show(number)
+        +is_correct(choice) bool
+        +answer_text() str
+        +to_dict() dict
+        +from_dict(data) Quiz
+    }
+    class QuizGame {
+        +quizzes : list
+        +best_score : int or None
+        +to_state() dict
+        +save() bool
+        +load() bool
+        +load_from(path) bool
+        +read_quizzes(raw) list
+        +read_best_score(raw) int
+        +show_menu()
+        +play_quiz() int
+        +show_result(score, total, is_best)
+        +add_quiz() Quiz
+        +show_quiz_list()
+        +show_best_score()
+        +run()
+    }
+    QuizGame o-- Quiz : 퀴즈 목록으로 여러 개 가짐
+```
+
 경계를 나눈 기준은 **"이 정보를 누가 알고 있어야 하나"** 예요.
 정답이 몇 번인지는 문제 한 개만 알면 되니까 `Quiz` 가 갖고,
 최고 점수는 게임 전체가 알아야 하니까 `QuizGame` 이 가져요.
@@ -211,12 +245,70 @@ flowchart LR
 
 ### 호출 흐름
 
+어떤 함수가 어떤 함수를 부르는지 전부 그리면 이래요.
+
+```mermaid
+flowchart TD
+    M["main()"] --> L["load()"]
+    M --> R["run()"]
+
+    L --> LF["load_from(경로)"]
+    LF --> RQ["read_quizzes()"]
+    LF --> RB["read_best_score()"]
+    RQ --> FD["Quiz.from_dict()"]
+
+    R --> SM["show_menu()"]
+    R --> RMC["read_menu_choice()"]
+    R --> PQ["play_quiz()"]
+    R --> AQ["add_quiz()"]
+    R --> SQL["show_quiz_list()"]
+    R --> SBS["show_best_score()"]
+
+    RMC --> AI["ask_int()"]
+    PQ --> SH["Quiz.show()"]
+    PQ --> IC["Quiz.is_correct()"]
+    PQ --> AI
+    PQ --> SV["save()"]
+    AQ --> AT["ask_text()"]
+    AQ --> AI
+    AQ --> SV
+
+    SV --> TS["to_state()"]
+    TS --> TD["Quiz.to_dict()"]
+```
+
+`ask_int()` 로 화살표가 **세 군데에서** 들어오는 게 보이죠.
+메뉴 번호, 정답 번호, 퀴즈 추가할 때 정답 번호요.
+숫자를 받는 자리는 전부 이 함수 하나를 거쳐요.
+
 `main()` 이 `QuizGame` 을 만들고 `load()` 로 저장 파일을 읽은 다음 `run()` 을 불러요.
 `run()` 은 `show_menu()` 로 메뉴를 띄우고 `read_menu_choice()` 로 번호를 받아서
 해당 메서드로 보내요. 번호를 받는 자리는 전부 `ask_int()` 를 거치기 때문에,
 잘못된 입력은 메뉴든 정답 번호든 같은 자리에서 걸러져요.
 `ask_int()` 는 올바른 값을 받을 때까지 안 돌아오니까, 부르는 쪽은
 "여기서 받은 값은 이미 검증된 값" 이라고 믿고 쓸 수 있어요.
+
+문제 하나를 채점하는 동안 누가 누구에게 뭘 시키는지 순서대로 보면 이래요.
+
+```mermaid
+sequenceDiagram
+    participant U as 사용자
+    participant G as QuizGame
+    participant Q as Quiz
+    participant A as ask_int()
+
+    G->>Q: show(번호)
+    Q-->>U: 문제와 선택지 4개를 보여준다
+    G->>A: 정답 번호를 받아와줘
+    U->>A: 입력
+    A-->>A: 공백 제거·숫자 변환·범위 검사
+    A-->>G: 검증된 숫자
+    G->>Q: is_correct(숫자)
+    Q-->>G: True 또는 False
+    G-->>U: 정답입니다 / 오답입니다
+```
+
+`QuizGame` 이 정답을 직접 안 보고 `Quiz` 에게 물어보는 게 여기서 드러나요.
 
 퀴즈를 다 풀면 `play_quiz()` 가 최고 점수를 갱신하고 `save()` 를 부르고,
 `save()` 는 `to_state()` 로 만든 딕셔너리를 파일에 써요.
@@ -345,6 +437,25 @@ flowchart TD
 두 파일 다 `.gitignore` 에 넣어서 저장소엔 안 올라가요.
 
 ### 필드 구조
+
+저장 파일이 어떻게 생겼는지 그림으로 보면 이래요.
+`quizzes` 안에 퀴즈가 여러 개 들어가고, 퀴즈 하나가 다시 세 개로 나뉘는 **중첩 구조**예요.
+
+```mermaid
+flowchart TD
+    R["state.json"] --> Q["quizzes<br/>배열"]
+    R --> B["best_score<br/>정수 또는 null"]
+    Q --> Q1["퀴즈 1"]
+    Q --> Q2["퀴즈 2"]
+    Q --> QN["퀴즈 N ..."]
+    Q1 --> F1["question<br/>문자열"]
+    Q1 --> F2["choices<br/>문자열 4개 배열"]
+    Q1 --> F3["answer<br/>1~4 정수"]
+    F2 --> C1["선택지 1"]
+    F2 --> C2["선택지 2"]
+    F2 --> C3["선택지 3"]
+    F2 --> C4["선택지 4"]
+```
 
 | 키 | 타입 | 설명 |
 |---|---|---|
