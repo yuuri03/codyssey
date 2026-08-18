@@ -1,7 +1,7 @@
 """뮤지컬 퀴즈 게임.
 
-터미널에서 동작하는 4지선다 퀴즈 게임이다.
-`python quiz_game.py` 로 실행한다.
+터미널에서 동작하는 4지선다 퀴즈 게임임.
+`python quiz_game.py` 로 실행함.
 """
 
 import json
@@ -11,10 +11,10 @@ TITLE = "뮤지컬 퀴즈 게임"
 
 # 퀴즈 목록과 최고 점수를 저장할 파일.
 # 어느 위치에서 실행하든 프로젝트 루트를 가리키도록
-# 이 소스 파일이 있는 디렉터리를 기준으로 경로를 만든다.
+# 이 소스 파일이 있는 디렉터리를 기준으로 경로를 만듦.
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json")
 
-# 저장하다가 멈춰도 직전 내용이 남도록 백업과 임시 파일을 함께 쓴다.
+# 저장하다가 멈춰도 직전 내용이 남도록 백업과 임시 파일을 함께 씀.
 BACKUP_FILE = STATE_FILE + ".bak"
 TEMP_FILE = STATE_FILE + ".tmp"
 
@@ -27,7 +27,7 @@ MENU_ITEMS = {
     5: "종료",
 }
 
-# 모든 퀴즈는 4개의 선택지를 가진다.
+# 모든 퀴즈는 4개의 선택지를 가짐.
 CHOICE_COUNT = 4
 
 
@@ -38,6 +38,11 @@ class Quiz:
         question (str): 문제 내용
         choices (list[str]): 선택지 4개
         answer (int): 정답 번호 (1~4)
+
+    값 검사를 __init__ 한 곳에 모아 둠.
+    그래서 Quiz 객체가 만들어졌다는 것은 곧
+    '선택지 4개가 다 차 있고 서로 다르며 정답 번호가 1~4 안' 이라는 뜻임.
+    이 뒤의 코드에서는 다시 확인하지 않아도 됨.
     """
 
     def __init__(self, question, choices, answer):
@@ -50,7 +55,8 @@ class Quiz:
             raise ValueError(f"선택지는 {CHOICE_COUNT}개여야 합니다. (입력: {len(choices)}개)")
         if any(not choice for choice in choices):
             raise ValueError("선택지는 비어 있을 수 없습니다.")
-        # 같은 내용의 선택지가 둘 이상이면 정답이 하나로 정해지지 않는다.
+        # 같은 내용의 선택지가 둘 이상이면 정답이 하나로 정해지지 않음.
+        # set 은 중복을 버리므로 개수가 줄었으면 중복이 있었다는 뜻임.
         if len(set(choices)) != len(choices):
             raise ValueError("선택지는 서로 달라야 합니다.")
         if not isinstance(answer, int) or not 1 <= answer <= CHOICE_COUNT:
@@ -61,9 +67,9 @@ class Quiz:
         self.answer = answer
 
     def show(self, number=None):
-        """문제와 선택지를 화면에 출력한다.
+        """문제와 선택지를 화면에 출력함.
 
-        number 를 주면 '3번 문제' 처럼 문제 번호를 함께 보여준다.
+        number 를 주면 '3번 문제' 처럼 문제 번호를 함께 보여줌.
         """
         header = f"[{number}번 문제] " if number is not None else ""
         print(f"{header}{self.question}")
@@ -71,15 +77,15 @@ class Quiz:
             print(f"   {index}) {choice}")
 
     def is_correct(self, choice):
-        """입력한 번호가 정답이면 True 를 돌려준다."""
+        """입력한 번호가 정답이면 True 를 돌려줌."""
         return choice == self.answer
 
     def answer_text(self):
-        """정답 선택지의 내용을 돌려준다."""
+        """정답 선택지의 내용을 돌려줌."""
         return self.choices[self.answer - 1]
 
     def to_dict(self):
-        """JSON 으로 저장할 수 있는 딕셔너리 형태로 바꾼다."""
+        """JSON 으로 저장할 수 있는 딕셔너리 형태로 바꿈."""
         return {
             "question": self.question,
             "choices": list(self.choices),
@@ -88,10 +94,10 @@ class Quiz:
 
     @classmethod
     def from_dict(cls, data):
-        """저장 파일에서 읽은 딕셔너리로 Quiz 를 만든다.
+        """저장 파일에서 읽은 딕셔너리로 Quiz 를 만듦.
 
-        형식이 맞지 않으면 ValueError 를 일으킨다.
-        값의 범위 검사는 __init__ 이 다시 한 번 수행한다.
+        형식이 맞지 않으면 ValueError 를 일으킴.
+        값의 범위 검사는 __init__ 이 다시 한 번 수행함.
         """
         if not isinstance(data, dict):
             raise ValueError("퀴즈 하나는 딕셔너리 형태여야 합니다.")
@@ -108,7 +114,8 @@ class Quiz:
             raise ValueError("문제 내용은 문자열이어야 합니다.")
         if not isinstance(choices, list) or any(not isinstance(item, str) for item in choices):
             raise ValueError("선택지는 문자열 목록이어야 합니다.")
-        # JSON 의 true/false 는 파이썬에서 int 로도 취급되므로 bool 을 먼저 걸러 낸다.
+        # bool 은 int 의 자식 클래스라 isinstance(True, int) 가 True 임.
+        # 그래서 저장 파일에 "answer": true 가 있으면 그냥 통과해 버림. 먼저 걸러 냄.
         if isinstance(answer, bool) or not isinstance(answer, int):
             raise ValueError("정답 번호는 정수여야 합니다.")
 
@@ -119,7 +126,7 @@ class Quiz:
 
 
 # 기본으로 제공되는 뮤지컬 문제.
-# (문제, 선택지 4개, 정답 번호) 형태로 적어 두고 Quiz 인스턴스로 만든다.
+# (문제, 선택지 4개, 정답 번호) 형태로 적어 두고 Quiz 인스턴스로 만듦.
 DEFAULT_QUIZ_DATA = [
     (
         "뮤지컬 「오페라의 유령」의 음악을 작곡한 인물은?",
@@ -175,19 +182,22 @@ DEFAULT_QUIZ_DATA = [
 
 
 def default_quizzes():
-    """기본 퀴즈 데이터를 Quiz 인스턴스 목록으로 만들어 돌려준다."""
+    """기본 퀴즈 데이터를 Quiz 인스턴스 목록으로 만들어 돌려줌."""
     return [Quiz(question, choices, answer) for question, choices, answer in DEFAULT_QUIZ_DATA]
 
 
 def ask_int(prompt, low, high):
-    """`low` 이상 `high` 이하의 정수를 입력받아 돌려준다.
+    """`low` 이상 `high` 이하의 정수를 입력받아 돌려줌.
 
-    올바른 값을 입력할 때까지 반복해서 다시 물어본다.
-    처리하는 잘못된 입력은 다음 세 가지다.
+    올바른 값을 입력할 때까지 반복해서 다시 물어봄.
+    처리하는 잘못된 입력은 다음 세 가지임.
       - 빈 입력(그냥 Enter)
       - 숫자로 바꿀 수 없는 값 (예: abc)
       - 허용 범위를 벗어난 숫자 (예: 메뉴에서 9)
-    입력값은 앞뒤 공백을 제거한 뒤 판단한다.
+    입력값은 앞뒤 공백을 제거한 뒤 판단함.
+
+    올바른 값을 받기 전에는 반환하지 않으므로, 이 함수가 돌려준 값은
+    항상 low 이상 high 이하의 정수임. 부르는 쪽에 따로 검사가 필요 없음.
     """
     while True:
         answer = input(prompt).strip()
@@ -210,7 +220,7 @@ def ask_int(prompt, low, high):
 
 
 def ask_text(prompt):
-    """비어 있지 않은 문자열을 입력받아 돌려준다."""
+    """비어 있지 않은 문자열을 입력받아 돌려줌."""
     while True:
         text = input(prompt).strip()
         if text == "":
@@ -220,7 +230,7 @@ def ask_text(prompt):
 
 
 def read_menu_choice():
-    """메뉴 번호를 입력받아 돌려준다."""
+    """메뉴 번호를 입력받아 돌려줌."""
     return ask_int("번호를 선택하세요: ", 1, len(MENU_ITEMS))
 
 
@@ -230,42 +240,48 @@ class QuizGame:
     속성:
         quizzes (list[Quiz]): 현재 가지고 있는 퀴즈 목록
         best_score (int | None): 지금까지의 최고 점수(맞힌 문제 수).
-            아직 한 번도 풀지 않았으면 None 이다.
+            아직 한 번도 풀지 않았으면 None 임.
     """
 
     def __init__(self):
         self.quizzes = default_quizzes()
-        # 아직 한 번도 퀴즈를 풀지 않았으면 None 이다.
-        # 0 은 '풀었지만 한 문제도 못 맞힌 기록' 이므로 둘을 구분한다.
+        # 아직 한 번도 퀴즈를 풀지 않았으면 None 임.
+        # 0 은 '풀었지만 한 문제도 못 맞힌 기록' 이라 서로 다른 상태임.
+        # 둘 다 0 으로 두면 점수 확인 화면에서 구분할 수 없어 None 으로 나눔.
         self.best_score = None
 
     def to_state(self):
-        """저장 파일에 쓸 딕셔너리를 만든다."""
+        """저장 파일에 쓸 딕셔너리를 만듦."""
         return {
             "quizzes": [quiz.to_dict() for quiz in self.quizzes],
             "best_score": self.best_score,
         }
 
     def save(self):
-        """현재 퀴즈 목록과 최고 점수를 state.json 에 저장한다.
+        """현재 퀴즈 목록과 최고 점수를 state.json 에 저장함.
 
-        저장에 성공하면 True, 실패하면 False 를 돌려준다.
-        저장에 실패해도 게임은 계속 진행할 수 있어야 하므로 예외를 밖으로 던지지 않는다.
+        저장에 성공하면 True, 실패하면 False 를 돌려줌.
+        저장에 실패해도 게임은 계속 진행할 수 있어야 하므로 예외를 밖으로 던지지 않음.
 
         state.json 을 곧바로 열어서 쓰면, 쓰는 도중에 프로그램이 멈췄을 때
-        반쯤 쓰인 파일만 남아 이전 내용까지 함께 사라진다.
+        반쯤 쓰인 파일만 남아 이전 내용까지 함께 사라짐.
         그래서 임시 파일에 먼저 다 쓴 뒤 이름을 바꿔 끼우고,
-        직전 파일은 state.json.bak 으로 옮겨 한 세대 남겨 둔다.
+        직전 파일은 state.json.bak 으로 옮겨 한 세대 남겨 둠.
         """
         try:
             with open(TEMP_FILE, "w", encoding="utf-8") as file:
                 json.dump(self.to_state(), file, ensure_ascii=False, indent=2)
+            # os.replace 는 내용을 복사하지 않고 이름만 바꾸므로 끊길 틈이 거의 없음.
+            # os.rename 은 윈도우에서 대상 파일이 이미 있으면 실패하지만
+            # os.replace 는 덮어쓰고, 운영체제와 상관없이 같게 동작함.
             if os.path.exists(STATE_FILE):
                 os.replace(STATE_FILE, BACKUP_FILE)
             os.replace(TEMP_FILE, STATE_FILE)
         except (OSError, UnicodeEncodeError) as error:
             # OSError 는 디스크나 권한 문제, UnicodeEncodeError 는 입력받은 글자를
-            # UTF-8 로 옮길 수 없는 경우다. 어느 쪽이든 게임은 계속할 수 있어야 한다.
+            # UTF-8 로 옮길 수 없는 경우임. 어느 쪽이든 게임은 계속할 수 있어야 함.
+            # 둘은 부모가 달라서(UnicodeEncodeError 는 ValueError 계열)
+            # OSError 만 잡으면 예외가 밖으로 나가 프로그램이 죽음. 그래서 함께 잡음.
             print(f"[안내] 저장에 실패했습니다. 변경 내용이 남지 않을 수 있습니다. ({error})")
             self.remove_temp_file()
             return False
@@ -273,9 +289,9 @@ class QuizGame:
 
     @staticmethod
     def remove_temp_file():
-        """저장에 실패해 남은 임시 파일을 지운다.
+        """저장에 실패해 남은 임시 파일을 지움.
 
-        지우지 못해도 다음 저장 때 덮어쓰므로 오류를 밖으로 알리지 않는다.
+        지우지 못해도 다음 저장 때 덮어쓰므로 오류를 밖으로 알리지 않음.
         """
         try:
             os.remove(TEMP_FILE)
@@ -283,11 +299,11 @@ class QuizGame:
             pass
 
     def load(self):
-        """state.json 에서 퀴즈 목록과 최고 점수를 불러온다.
+        """state.json 에서 퀴즈 목록과 최고 점수를 불러옴.
 
-        본 파일을 읽지 못하면 백업 파일로 한 번 더 시도한다.
+        본 파일을 읽지 못하면 백업 파일로 한 번 더 시도함.
         둘 다 실패하면 안내 메시지를 출력하고 False 를 돌려주며,
-        이때 퀴즈 목록은 __init__ 이 만들어 둔 기본 퀴즈가 그대로 유지된다.
+        이때 퀴즈 목록은 __init__ 이 만들어 둔 기본 퀴즈가 그대로 유지됨.
         """
         if self.load_from(STATE_FILE):
             return True
@@ -295,7 +311,7 @@ class QuizGame:
         if os.path.exists(BACKUP_FILE):
             print("[안내] 백업 파일로 다시 시도합니다.")
             if self.load_from(BACKUP_FILE):
-                # 살려 낸 내용을 본 파일 자리에 되돌려 놓는다.
+                # 살려 낸 내용을 본 파일 자리에 되돌려 놓음.
                 self.save()
                 return True
 
@@ -303,10 +319,10 @@ class QuizGame:
         return False
 
     def load_from(self, path):
-        """주어진 파일에서 퀴즈 목록과 최고 점수를 읽어 채운다.
+        """주어진 파일에서 퀴즈 목록과 최고 점수를 읽어 채움.
 
-        읽어서 채우는 데 성공하면 True, 실패하면 False 를 돌려준다.
-        실패한 경우 퀴즈 목록과 최고 점수는 건드리지 않는다.
+        읽어서 채우는 데 성공하면 True, 실패하면 False 를 돌려줌.
+        실패한 경우 퀴즈 목록과 최고 점수는 건드리지 않음.
         """
         try:
             with open(path, "r", encoding="utf-8") as file:
@@ -339,9 +355,9 @@ class QuizGame:
 
     @staticmethod
     def read_quizzes(raw_quizzes):
-        """저장 파일에서 읽은 퀴즈 목록을 Quiz 목록으로 바꾼다.
+        """저장 파일에서 읽은 퀴즈 목록을 Quiz 목록으로 바꿈.
 
-        형식이 깨진 항목은 건너뛰고, 살아남은 퀴즈만 돌려준다.
+        형식이 깨진 항목은 건너뛰고, 살아남은 퀴즈만 돌려줌.
         """
         if not isinstance(raw_quizzes, list):
             return []
@@ -360,9 +376,9 @@ class QuizGame:
 
     @staticmethod
     def read_best_score(raw_best_score):
-        """저장 파일에서 읽은 최고 점수를 검사해 돌려준다.
+        """저장 파일에서 읽은 최고 점수를 검사해 돌려줌.
 
-        기록이 없거나 값이 이상하면 None 을 돌려준다.
+        기록이 없거나 값이 이상하면 None 을 돌려줌.
         """
         if raw_best_score is None:
             return None
@@ -375,7 +391,7 @@ class QuizGame:
         return raw_best_score
 
     def show_menu(self):
-        """메뉴를 화면에 출력한다."""
+        """메뉴를 화면에 출력함."""
         print()
         print("=" * 40)
         print(f"  {TITLE}")
@@ -385,9 +401,9 @@ class QuizGame:
         print("-" * 40)
 
     def play_quiz(self):
-        """저장된 퀴즈를 차례대로 출제하고 채점한다.
+        """저장된 퀴즈를 차례대로 출제하고 채점함.
 
-        맞힌 문제 수를 돌려준다. 풀 퀴즈가 없으면 None 을 돌려준다.
+        맞힌 문제 수를 돌려줌. 풀 퀴즈가 없으면 None 을 돌려줌.
         """
         if not self.quizzes:
             print()
@@ -419,7 +435,7 @@ class QuizGame:
         return score
 
     def show_result(self, score, total, is_best=False):
-        """퀴즈를 모두 푼 뒤 결과를 보여준다."""
+        """퀴즈를 모두 푼 뒤 결과를 보여줌."""
         percent = round(score / total * 100)
         print()
         print("=" * 40)
@@ -439,9 +455,9 @@ class QuizGame:
         print("-" * 40)
 
     def add_quiz(self):
-        """새로운 퀴즈를 입력받아 등록한다.
+        """새로운 퀴즈를 입력받아 등록함.
 
-        등록에 성공하면 만들어진 Quiz 를, 실패하면 None 을 돌려준다.
+        등록에 성공하면 만들어진 Quiz 를, 실패하면 None 을 돌려줌.
         """
         print()
         print("새로운 퀴즈를 추가합니다.")
@@ -451,7 +467,7 @@ class QuizGame:
         answer = ask_int(f"정답 번호 (1~{CHOICE_COUNT}): ", 1, CHOICE_COUNT)
 
         # ask_text / ask_int 가 형식은 걸러 주지만, 중복 선택지처럼
-        # Quiz 가 판단할 문제도 있으므로 생성 단계에서 한 번 더 확인한다.
+        # Quiz 가 판단할 문제도 있으므로 생성 단계에서 한 번 더 확인함.
         try:
             quiz = Quiz(question, choices, answer)
         except ValueError as error:
@@ -464,7 +480,7 @@ class QuizGame:
         return quiz
 
     def show_quiz_list(self):
-        """저장된 퀴즈 목록을 문제 번호와 함께 보여준다."""
+        """저장된 퀴즈 목록을 문제 번호와 함께 보여줌."""
         print()
         if not self.quizzes:
             print("[안내] 등록된 퀴즈가 없습니다. 먼저 '2. 퀴즈 추가' 로 문제를 등록해 주세요.")
@@ -478,7 +494,7 @@ class QuizGame:
         print("-" * 40)
 
     def show_best_score(self):
-        """지금까지의 최고 점수를 보여준다."""
+        """지금까지의 최고 점수를 보여줌."""
         print()
         print("=" * 40)
         print("  최고 점수")
@@ -490,7 +506,7 @@ class QuizGame:
         print("-" * 40)
 
     def run(self):
-        """메뉴를 반복해서 보여주며 게임을 진행한다."""
+        """메뉴를 반복해서 보여주며 게임을 진행함."""
         print(f"{TITLE}에 오신 것을 환영합니다!")
 
         while True:
@@ -515,7 +531,7 @@ def main():
     """프로그램의 시작점.
 
     Ctrl+C(KeyboardInterrupt) 나 입력 스트림 종료(EOFError) 로 게임이 끊겨도
-    파이썬 오류 메시지를 그대로 띄우지 않고, 지금까지의 내용을 저장한 뒤 종료한다.
+    파이썬 오류 메시지를 그대로 띄우지 않고, 지금까지의 내용을 저장한 뒤 종료함.
     """
     game = QuizGame()
     game.load()
@@ -523,13 +539,15 @@ def main():
     try:
         game.run()
     except KeyboardInterrupt:
+        # KeyboardInterrupt 는 Exception 이 아니라 BaseException 바로 아래에 있음.
+        # 실수로 삼켜지면 안 되는 중단 신호라서, 이름을 직접 적어야 잡힘.
         finish_early(game, "Ctrl+C 가 입력되어")
     except EOFError:
         finish_early(game, "입력이 더 이상 들어오지 않아")
 
 
 def finish_early(game, reason):
-    """게임이 중간에 끊겼을 때 안내하고 안전하게 마무리한다."""
+    """게임이 중간에 끊겼을 때 안내하고 안전하게 마무리함."""
     print()
     print(f"[안내] {reason} 게임을 중단합니다.")
     if game.save():
