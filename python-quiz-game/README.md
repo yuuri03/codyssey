@@ -45,15 +45,9 @@ flowchart TD
     C --> E["메뉴를 보여준다"]
     D --> E
     E --> F{"몇 번을 골랐나?"}
-    F -->|"1번"| G["퀴즈 풀기"]
-    F -->|"2번"| H["퀴즈 추가"]
-    F -->|"3번"| I["퀴즈 목록"]
-    F -->|"4번"| J["점수 확인"]
-    F -->|"5번"| K["저장하고 종료"]
+    F -->|"1~4번"| G["퀴즈 풀기 · 추가 · 목록 · 점수 확인"]
     G --> E
-    H --> E
-    I --> E
-    J --> E
+    F -->|"5번"| H["저장하고 종료"]
 ```
 
 ## 퀴즈 주제와 선정 이유
@@ -374,19 +368,20 @@ classDiagram
 flowchart TD
     M["main()"] --> L["load()"]
     M --> R["run()"]
+
     L --> LF["load_from(경로)"]
     LF --> RQ["read_quizzes()"]
     RQ --> FD["Quiz.from_dict()"]
+
     R --> RMC["read_menu_choice()"]
     R --> PQ["play_quiz()"]
     R --> AQ["add_quiz()"]
-    RMC --> AI["ask_int()"]
-    PQ --> SH["Quiz.show()"]
-    PQ --> IC["Quiz.is_correct()"]
+
+    RMC --> AI(["ask_int()"])
     PQ --> AI
-    PQ --> SV["save()"]
-    AQ --> AT["ask_text()"]
     AQ --> AI
+
+    PQ --> SV(["save()"])
     AQ --> SV
     SV --> TS["to_state()"]
     TS --> TD["Quiz.to_dict()"]
