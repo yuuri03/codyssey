@@ -410,33 +410,10 @@ code {
   color: var(--color-accent);
 }
 
-.hero__typing {
-  min-height: 2rem;
+.hero__tagline {
   font-family: var(--font-mono);
   font-size: clamp(0.95rem, 3.6vw, 1.25rem);
   color: var(--color-text-muted);
-}
-
-.hero__caret {
-  display: inline-block;
-  width: 0.6ch;
-  margin-left: 0.1ch;
-  background-color: var(--color-accent);
-  animation: caret-blink 1s step-end infinite;
-}
-
-.hero__caret::before {
-  content: '\00a0';
-}
-
-@keyframes caret-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
 }
 
 .hero__lead {
@@ -639,36 +616,6 @@ code {
 }
 
 /* ── 9. Projects ──────────────────────────────────────────── */
-.projects__filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: var(--space-5);
-}
-
-.filter-btn {
-  padding: 0.35rem 0.9rem;
-  background-color: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color var(--transition), color var(--transition),
-    border-color var(--transition);
-}
-
-.filter-btn:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
-.filter-btn.is-active {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-on-accent);
-}
-
 /* 로딩 · 에러 · 빈 상태가 공유하는 자리 */
 .projects__status {
   display: grid;

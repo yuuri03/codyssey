@@ -13,13 +13,11 @@
 
   const statusBox = document.querySelector('#projects-status');
   const grid = document.querySelector('#projects-grid');
-  const filterBox = document.querySelector('#project-filters');
 
   /* ── 상태 ────────────────────────────────────────────────── */
   const state = {
     status: 'idle', // 'idle' | 'loading' | 'success' | 'error'
     repos: [],
-    language: 'all', // 선택된 언어 필터
     errorMessage: '',
   };
 
@@ -61,35 +59,6 @@
   };
 
   /* ── 렌더링 ──────────────────────────────────────────────── */
-  const renderFilters = (repos) => {
-    /* map 으로 언어만 뽑고, filter 로 빈 값(언어가 없는 저장소)을 걷어낸 뒤 중복을 없앤다 */
-    const languages = [...new Set(repos.map(({ language }) => language).filter(Boolean))].sort();
-
-    if (languages.length === 0) {
-      filterBox.hidden = true;
-      filterBox.innerHTML = '';
-      return;
-    }
-
-    const options = ['all', ...languages];
-
-    filterBox.innerHTML = options
-      .map((language) => {
-        const isActive = language === state.language;
-        const label = language === 'all' ? `전체 (${repos.length})` : language;
-
-        return `
-          <button class="filter-btn${isActive ? ' is-active' : ''}" type="button"
-                  data-language="${escapeHtml(language)}" aria-pressed="${isActive}">
-            ${escapeHtml(label)}
-          </button>
-        `;
-      })
-      .join('');
-
-    filterBox.hidden = false;
-  };
-
   const createCard = (repo) => {
     /* 구조분해 할당으로 필요한 값만 꺼내고, 긴 이름은 짧게 바꿔 받는다 */
     const {
@@ -136,7 +105,6 @@
 
   function render() {
     if (state.status === 'loading') {
-      filterBox.hidden = true;
       grid.innerHTML = '';
       statusBox.innerHTML = renderState({
         title: '불러오는 중...',
@@ -147,7 +115,6 @@
     }
 
     if (state.status === 'error') {
-      filterBox.hidden = true;
       grid.innerHTML = '';
       statusBox.innerHTML = renderState({
         title: '프로젝트를 불러올 수 없습니다',
@@ -163,7 +130,6 @@
 
     /* 성공했지만 저장소가 하나도 없는 경우 */
     if (state.repos.length === 0) {
-      filterBox.hidden = true;
       grid.innerHTML = '';
       statusBox.innerHTML = renderState({
         title: '표시할 프로젝트가 없습니다',
@@ -172,25 +138,8 @@
       return;
     }
 
-    renderFilters(state.repos);
-
-    /* 선택한 언어만 남긴다 */
-    const visible =
-      state.language === 'all'
-        ? state.repos
-        : state.repos.filter(({ language }) => language === state.language);
-
-    if (visible.length === 0) {
-      grid.innerHTML = '';
-      statusBox.innerHTML = renderState({
-        title: '조건에 맞는 프로젝트가 없습니다',
-        description: `${escapeHtml(state.language)} 로 만든 저장소가 없습니다. 다른 언어를 골라 보세요.`,
-      });
-      return;
-    }
-
     statusBox.innerHTML = '';
-    grid.innerHTML = visible.map(createCard).join('');
+    grid.innerHTML = state.repos.map(createCard).join('');
   }
 
   /* ── 데이터 불러오기 ─────────────────────────────────────── */
@@ -215,13 +164,14 @@
           new Date(b.updated_at) - new Date(a.updated_at)
       );
 
-      setState({ status: 'success', repos, language: 'all' });
+      setState({ status: 'success', repos });
     } catch (error) {
       /* fetch 는 네트워크가 끊겼을 때도 예외를 던진다.
          위에서 만든 안내 문장이 있으면 그대로 쓰고, 없으면 일반 문장으로 대신한다. */
-      const message = error instanceof TypeError
-        ? '네트워크에 연결할 수 없습니다. 인터넷 상태를 확인한 뒤 다시 시도해 주세요.'
-        : error.message;
+      const message =
+        error instanceof TypeError
+          ? '네트워크에 연결할 수 없습니다. 인터넷 상태를 확인한 뒤 다시 시도해 주세요.'
+          : error.message;
 
       setState({ status: 'error', repos: [], errorMessage: message });
     }
@@ -235,15 +185,6 @@
     if (event.target.closest('[data-retry]')) {
       loadRepos();
     }
-  });
-
-  filterBox.addEventListener('click', (event) => {
-    const button = event.target.closest('.filter-btn');
-
-    if (!button) {
-      return;
-    }
-    setState({ language: button.dataset.language });
   });
 
   loadRepos();
