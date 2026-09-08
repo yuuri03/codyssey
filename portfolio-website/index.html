@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>공윤경 (Yoonkyung Gong) | 포트폴리오</title>
+  <meta name="description" content="Codyssey 입학연수에서 개발을 배우는 공윤경의 포트폴리오. 외부 라이브러리 없이 HTML, CSS, JavaScript 만으로 만든 반응형 페이지입니다." />
+  <meta name="author" content="공윤경 (Yoonkyung Gong)" />
+
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!--
+    첫 화면이 그려지기 전에 테마를 정해 둔다.
+    defer 스크립트는 HTML 파싱이 끝난 뒤에 실행되므로, 그때 다크 모드를 켜면
+    라이트 화면이 한 번 번쩍인 뒤 어두워진다. 이 깜빡임만 막는 최소한의 코드다.
+  -->
+  <script>
+    (() => {
+      let saved = null;
+      try {
+        saved = localStorage.getItem('portfolio-theme');
+      } catch (error) {
+        saved = null;
+      }
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = saved || (prefersDark ? 'dark' : 'light');
+    })();
+  </script>
+
+  <script defer src="js/theme.js"></script>
+  <script defer src="js/navigation.js"></script>
+  <script defer src="js/scroll.js"></script>
+  <script defer src="js/hero.js"></script>
+  <script defer src="js/projects.js"></script>
+  <script defer src="js/contact-form.js"></script>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+
+  <!-- ── 헤더 / 네비게이션 ────────────────────────────────── -->
+  <header class="header" id="header">
+    <nav class="nav container" aria-label="주 메뉴">
+      <a class="nav__logo" href="#hero">
+        공윤경<span class="nav__logo-dot">.</span>dev
+      </a>
+
+      <ul class="nav__menu" id="nav-menu">
+        <li class="nav__item"><a class="nav__link" href="#about">About</a></li>
+        <li class="nav__item"><a class="nav__link" href="#skills">Skills</a></li>
+        <li class="nav__item"><a class="nav__link" href="#projects">Projects</a></li>
+        <li class="nav__item"><a class="nav__link" href="#contact">Contact</a></li>
+      </ul>
+
+      <div class="nav__actions">
+        <button class="icon-btn" id="theme-toggle" type="button" aria-pressed="false" aria-label="다크 모드로 전환">
+          <span class="icon-btn__glyph" id="theme-toggle-icon" aria-hidden="true">☾</span>
+        </button>
+
+        <button class="hamburger" id="hamburger" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="메뉴 열기">
+          <span class="hamburger__bar"></span>
+          <span class="hamburger__bar"></span>
+          <span class="hamburger__bar"></span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- ── Hero ─────────────────────────────────────────── -->
+    <section class="hero" id="hero">
+      <div class="container hero__inner">
+        <p class="hero__greeting">Hello, World!</p>
+        <h1 class="hero__title">
+          안녕하세요,<br />
+          저는 <span class="hero__name">공윤경</span> 입니다.
+        </h1>
+        <p class="hero__typing">
+          <span class="hero__typing-text" id="typing-text"></span><span class="hero__caret" aria-hidden="true"></span>
+        </p>
+        <p class="hero__lead">
+          Codyssey 입학연수 &lsquo;개발 입문&rsquo; 과정에서 파이썬으로 시작해
+          지금은 웹이 어떻게 도는지를 배우고 있습니다.
+          이 페이지도 라이브러리 없이 HTML, CSS, JavaScript 만으로 만들었습니다.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#projects">프로젝트 보기</a>
+          <a class="btn btn--ghost" href="#contact">연락하기</a>
+        </div>
+      </div>
+      <a class="hero__scroll-hint" href="#about" aria-label="About 섹션으로 이동">
+        <span aria-hidden="true">↓</span>
+      </a>
+    </section>
+
+    <!-- ── About ────────────────────────────────────────── -->
+    <section class="section" id="about" data-reveal>
+      <div class="container">
+        <p class="section__eyebrow">01 &mdash; About</p>
+        <h2 class="section__title">저를 소개합니다</h2>
+
+        <div class="about">
+          <figure class="about__figure">
+            <img class="about__photo" src="images/profile.svg" width="400" height="400"
+                 alt="공윤경의 프로필 이미지. 노트북 앞에 앉아 있는 사람을 단순한 도형으로 그린 그림입니다." />
+            <figcaption class="about__caption">공윤경 (Yoonkyung Gong)</figcaption>
+          </figure>
+
+          <div class="about__body">
+            <p>
+              배운 것을 눈에 보이는 결과물로 남기는 걸 좋아합니다.
+              지금까지 터미널에서 도는 <strong>4지선다 퀴즈 게임</strong>과,
+              MAC 연산으로 패턴을 판별하는 <strong>Mini NPU 시뮬레이터</strong>를
+              외부 라이브러리 없이 파이썬 표준 라이브러리만으로 만들었습니다.
+            </p>
+            <p>
+              두 미션을 지나며 잘못된 입력을 어떻게 걸러 내는지, 부동소수점 비교가 왜 어긋나는지,
+              연산 횟수가 시간에 어떻게 반영되는지를 직접 재 보며 익혔습니다.
+              이번에는 그 관심을 브라우저로 옮겨,
+              <strong>사용자 이벤트 → 상태 변경 → 화면 갱신</strong>이 어떻게 이어지는지를
+              한 페이지 안에서 확인하고 있습니다.
+            </p>
+            <ul class="about__facts">
+              <li class="about__fact">
+                <span class="about__fact-key">과정</span>
+                <span class="about__fact-value">Codyssey 입학연수 · 개발 입문</span>
+              </li>
+              <li class="about__fact">
+                <span class="about__fact-key">관심</span>
+                <span class="about__fact-value">웹 프론트엔드, 데이터가 화면이 되는 과정</span>
+              </li>
+              <li class="about__fact">
+                <span class="about__fact-key">다음</span>
+                <span class="about__fact-value">React 의 컴포넌트와 상태 관리</span>
+              </li>
+              <li class="about__fact">
+                <span class="about__fact-key">원칙</span>
+                <span class="about__fact-value">왜 그렇게 했는지 설명할 수 있는 코드</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Skills ───────────────────────────────────────── -->
+    <section class="section section--tinted" id="skills" data-reveal>
+      <div class="container">
+        <p class="section__eyebrow">02 &mdash; Skills</p>
+        <h2 class="section__title">다룰 수 있는 것들</h2>
+        <p class="section__lead">
+          아직 배우는 중이라, 실제로 미션에서 써 본 것만 적었습니다.
+        </p>
+
+        <div class="skills">
+          <article class="skill-card">
+            <h3 class="skill-card__title">Language</h3>
+            <ul class="skill-card__list">
+              <li class="tag">Python 3</li>
+              <li class="tag">JavaScript (ES6+)</li>
+              <li class="tag">HTML5</li>
+              <li class="tag">CSS3</li>
+            </ul>
+            <p class="skill-card__note">
+              파이썬으로 콘솔 프로그램 두 개를 만들었고, 지금은 자바스크립트로 DOM 을 다룹니다.
+            </p>
+          </article>
+
+          <article class="skill-card">
+            <h3 class="skill-card__title">Markup &amp; Layout</h3>
+            <ul class="skill-card__list">
+              <li class="tag">시맨틱 마크업</li>
+              <li class="tag">Flexbox</li>
+              <li class="tag">CSS Grid</li>
+              <li class="tag">반응형 (모바일 퍼스트)</li>
+              <li class="tag">CSS 변수</li>
+            </ul>
+            <p class="skill-card__note">
+              한 줄로 놓이는 배치는 Flexbox, 카드가 줄바꿈되는 격자는 Grid 로 나눠 씁니다.
+            </p>
+          </article>
+
+          <article class="skill-card">
+            <h3 class="skill-card__title">Browser &amp; Async</h3>
+            <ul class="skill-card__list">
+              <li class="tag">DOM 조작</li>
+              <li class="tag">이벤트 처리</li>
+              <li class="tag">fetch / async·await</li>
+              <li class="tag">Intersection Observer</li>
+              <li class="tag">localStorage</li>
+            </ul>
+            <p class="skill-card__note">
+              GitHub API 를 불러오며 로딩·성공·에러·빈 상태를 화면으로 나누는 법을 익혔습니다.
+            </p>
+          </article>
+
+          <article class="skill-card">
+            <h3 class="skill-card__title">Tools &amp; Basics</h3>
+            <ul class="skill-card__list">
+              <li class="tag">Git &amp; GitHub</li>
+              <li class="tag">GitHub Pages</li>
+              <li class="tag">VS Code · Live Server</li>
+              <li class="tag">JSON 데이터 처리</li>
+              <li class="tag">시간 복잡도 기초</li>
+            </ul>
+            <p class="skill-card__note">
+              기능 하나를 끝낼 때마다 커밋하고, 브랜치를 나눠 작업한 뒤 main 에 병합합니다.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Projects ─────────────────────────────────────── -->
+    <section class="section" id="projects" data-reveal>
+      <div class="container">
+        <p class="section__eyebrow">03 &mdash; Projects</p>
+        <h2 class="section__title">GitHub 저장소</h2>
+        <p class="section__lead">
+          GitHub API 로 <code>yuuri03</code> 의 공개 저장소를 불러와 그립니다.
+          아래 목록은 이 페이지를 열 때마다 새로 요청한 결과입니다.
+        </p>
+
+        <div class="projects__filters" id="project-filters" role="group" aria-label="언어별 필터" hidden></div>
+
+        <!-- 로딩 · 에러 · 빈 상태가 나타나는 자리 -->
+        <div class="projects__status" id="projects-status" role="status" aria-live="polite"></div>
+
+        <!-- 성공 상태의 카드가 그려지는 자리 -->
+        <div class="projects__grid" id="projects-grid"></div>
+      </div>
+    </section>
+
+    <!-- ── Contact ──────────────────────────────────────── -->
+    <section class="section section--tinted" id="contact" data-reveal>
+      <div class="container">
+        <p class="section__eyebrow">04 &mdash; Contact</p>
+        <h2 class="section__title">연락하기</h2>
+        <p class="section__lead">
+          궁금한 점이나 피드백이 있다면 아래로 남겨 주세요.
+        </p>
+
+        <div class="contact">
+          <ul class="contact__links">
+            <li class="contact__link-item">
+              <span class="contact__link-key">Email</span>
+              <a class="contact__link" href="mailto:rorakong03@gmail.com">rorakong03@gmail.com</a>
+            </li>
+            <li class="contact__link-item">
+              <span class="contact__link-key">GitHub</span>
+              <a class="contact__link" href="https://github.com/yuuri03" target="_blank" rel="noopener noreferrer">github.com/yuuri03</a>
+            </li>
+            <li class="contact__link-item">
+              <span class="contact__link-key">Repository</span>
+              <a class="contact__link" href="https://github.com/yuuri03/codyssey" target="_blank" rel="noopener noreferrer">yuuri03/codyssey</a>
+            </li>
+          </ul>
+
+          <form class="form" id="contact-form" novalidate>
+            <div class="field">
+              <label class="field__label" for="name">이름</label>
+              <input class="field__input" type="text" id="name" name="name"
+                     placeholder="이름을 입력해 주세요" autocomplete="name"
+                     aria-describedby="name-error" />
+              <p class="field__error" id="name-error" hidden></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="email">이메일</label>
+              <input class="field__input" type="email" id="email" name="email"
+                     placeholder="answer@example.com" autocomplete="email"
+                     aria-describedby="email-error" />
+              <p class="field__error" id="email-error" hidden></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="message">메시지</label>
+              <textarea class="field__input field__input--area" id="message" name="message" rows="5"
+                        placeholder="10자 이상 남겨 주세요"
+                        aria-describedby="message-error"></textarea>
+              <p class="field__error" id="message-error" hidden></p>
+            </div>
+
+            <button class="btn btn--primary btn--block" type="submit">보내기</button>
+
+            <p class="form__success" id="form-success" role="status" hidden></p>
+            <p class="form__note">
+              학습용 페이지라 실제로 메일이 전송되지는 않습니다. 입력값 검증까지만 동작합니다.
+            </p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ── Footer ───────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p class="footer__copy">&copy; 2026 공윤경 (Yoonkyung Gong)</p>
+      <ul class="footer__social">
+        <li><a class="footer__link" href="https://github.com/yuuri03" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        <li><a class="footer__link" href="mailto:rorakong03@gmail.com">Email</a></li>
+        <li><a class="footer__link" href="https://github.com/yuuri03/codyssey" target="_blank" rel="noopener noreferrer">Codyssey</a></li>
+      </ul>
+      <p class="footer__built">HTML · CSS · JavaScript 만으로 만들었습니다.</p>
+    </div>
+  </footer>
+
+  <button class="scroll-top" id="scroll-top" type="button" aria-label="맨 위로 이동" hidden>
+    <span aria-hidden="true">↑</span>
+  </button>
+</body>
+</html>
