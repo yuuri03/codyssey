@@ -670,7 +670,10 @@ code {
 .projects__grid {
   display: grid;
   gap: var(--space-4);
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  /* 위쪽 한계를 24rem 으로 잡아, 저장소가 하나뿐일 때 카드가 한 줄을 다 차지하지
+     않도록 한다. 열 수는 여전히 화면 너비에 따라 auto-fit 이 정한다. */
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 24rem));
+  justify-content: start;
 }
 
 .projects__grid:empty {
@@ -989,9 +992,12 @@ code {
     font-size: 1.05rem;
   }
 
-  .projects__grid,
   .skills {
     grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  }
+
+  .projects__grid {
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 24rem));
   }
 
   .scroll-top {

@@ -46,10 +46,26 @@
     });
 
   /* 응답 코드마다 사용자가 이해할 수 있는 문장으로 바꾼다 */
-  const describeError = (response) => {
-    const remaining = response.headers.get('X-RateLimit-Remaining');
+  const describeError = async (response) => {
+    /* 레이트 리밋은 두 곳에서 확인한다.
+       헤더가 더 정확하지만 다른 출처의 응답이라 브라우저가 가려 놓는 경우가 있어,
+       본문의 message 도 함께 본다. */
+    let apiMessage = '';
 
-    if (response.status === 403 && remaining === '0') {
+    try {
+      const body = await response.json();
+
+      apiMessage = typeof body.message === 'string' ? body.message : '';
+    } catch (error) {
+      apiMessage = '';
+    }
+
+    const remaining = response.headers.get('X-RateLimit-Remaining');
+    const isRateLimited =
+      (response.status === 403 || response.status === 429) &&
+      (remaining === '0' || apiMessage.toLowerCase().includes('rate limit'));
+
+    if (isRateLimited) {
       return 'GitHub API 요청 한도를 넘었습니다. 인증 없이 호출하면 시간당 60회까지만 가능하니 잠시 뒤에 다시 시도해 주세요.';
     }
     if (response.status === 404) {
@@ -152,7 +168,7 @@
       });
 
       if (!response.ok) {
-        throw new Error(describeError(response));
+        throw new Error(await describeError(response));
       }
 
       const data = await response.json();
