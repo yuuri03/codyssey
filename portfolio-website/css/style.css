@@ -1,0 +1,1023 @@
+/* ============================================================
+   공윤경 포트폴리오 — style.css
+   모바일 퍼스트로 작성한다. 기본 규칙은 좁은 화면 기준이고,
+   768px(태블릿), 1024px(데스크톱) 에서 미디어 쿼리로 넓혀 간다.
+   ============================================================ */
+
+/* ── 1. 디자인 토큰 (CSS 변수) ───────────────────────────────
+   색·간격·모서리·그림자를 한곳에 모아 둔다.
+   다크 모드는 이 값들만 바꿔 끼우면 되므로, 규칙을 두 벌 쓰지 않아도 된다. */
+:root {
+  /* 색 — 라이트 모드 */
+  --color-bg: #f7f7fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0f0f7;
+  --color-text: #16161d;
+  --color-text-muted: #5c5c6e;
+  --color-border: #e3e3ee;
+  --color-accent: #5b5bd6;
+  --color-accent-strong: #4646bd;
+  --color-accent-soft: rgba(91, 91, 214, 0.1);
+  --color-on-accent: #ffffff;
+  --color-header: rgba(247, 247, 251, 0.78);
+  --color-danger: #c2334d;
+  --color-success: #167a56;
+
+  /* 그림자 */
+  --shadow-sm: 0 1px 2px rgba(16, 16, 32, 0.06);
+  --shadow-md: 0 6px 18px rgba(16, 16, 32, 0.08);
+  --shadow-lg: 0 16px 40px rgba(16, 16, 32, 0.14);
+
+  /* 글꼴 */
+  --font-sans: 'IBM Plex Sans KR', 'Malgun Gothic', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'D2Coding', ui-monospace, monospace;
+
+  /* 간격 — 4px 배수로 통일한다 */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+
+  /* 모서리 */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* 기타 */
+  --header-height: 4rem;
+  --transition: 0.25s ease;
+  --content-width: 68rem;
+}
+
+/* 색만 바꿔 끼우는 다크 모드 */
+[data-theme='dark'] {
+  --color-bg: #0d0d14;
+  --color-surface: #16161f;
+  --color-surface-2: #1e1e2a;
+  --color-text: #ecedf5;
+  --color-text-muted: #9c9cb2;
+  --color-border: #2b2b3b;
+  --color-accent: #8b8bf0;
+  --color-accent-strong: #a7a7ff;
+  --color-accent-soft: rgba(139, 139, 240, 0.16);
+  --color-on-accent: #10101a;
+  --color-header: rgba(13, 13, 20, 0.78);
+  --color-danger: #ff8095;
+  --color-success: #4ecf9e;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* ── 2. 리셋과 기본값 ──────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* 고정 헤더에 제목이 가리지 않도록, 앵커 이동 지점을 헤더 높이만큼 내린다 */
+  scroll-padding-top: calc(var(--header-height) + var(--space-4));
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+ul {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-sm);
+}
+
+/* JS 가 hidden 을 켜고 끄는 요소들이 display 규칙에 지지 않게 한다 */
+[hidden] {
+  display: none !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-inline: auto;
+  padding-inline: var(--space-5);
+}
+
+.skip-link {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  border-radius: var(--radius-sm);
+  transform: translateY(-200%);
+  transition: transform var(--transition);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* ── 3. 공통 컴포넌트 ─────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition), color var(--transition),
+    border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.btn--primary {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--primary:hover {
+  background-color: var(--color-accent-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn--ghost {
+  background-color: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.btn--ghost:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background-color var(--transition), border-color var(--transition),
+    transform var(--transition);
+}
+
+.icon-btn:hover {
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.icon-btn__glyph {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* ── 4. 헤더 / 네비게이션 (Flexbox) ────────────────────────
+   로고는 왼쪽, 메뉴와 버튼은 오른쪽. 한 줄에 놓이고 주축 방향으로만
+   나뉘는 배치라서 Grid 가 아니라 Flexbox 를 쓴다. */
+.header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background-color var(--transition), border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+/* 스크롤 60px 이상에서 JS 가 붙이는 클래스 */
+.header.is-scrolled {
+  background-color: var(--color-header);
+  backdrop-filter: blur(12px);
+  border-bottom-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.nav__logo {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.nav__logo-dot {
+  color: var(--color-accent);
+}
+
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 모바일: 메뉴를 화면 밖에 두었다가 .is-open 일 때 내린다 */
+.nav__menu {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5) var(--space-6);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-120%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform var(--transition), opacity var(--transition), visibility var(--transition);
+}
+
+.nav__menu.is-open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.nav__link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  transition: color var(--transition), background-color var(--transition);
+}
+
+.nav__link:hover {
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+}
+
+/* 현재 보고 있는 섹션의 메뉴 (JS 가 붙인다) */
+.nav__link.is-active {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* 햄버거 버튼 — 데스크톱에서는 숨긴다 */
+.hamburger {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.6rem;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: border-color var(--transition), background-color var(--transition);
+}
+
+.hamburger:hover {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+}
+
+.hamburger__bar {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: var(--color-text);
+  border-radius: var(--radius-pill);
+  transition: transform var(--transition), opacity var(--transition);
+}
+
+/* 열린 상태에서는 세 줄이 X 가 된다 */
+.hamburger.is-active .hamburger__bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger.is-active .hamburger__bar:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.is-active .hamburger__bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── 5. Hero ──────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding-block: calc(var(--header-height) + var(--space-8)) var(--space-9);
+  background-image:
+    radial-gradient(60rem 30rem at 80% -10%, var(--color-accent-soft), transparent),
+    radial-gradient(40rem 25rem at 0% 20%, var(--color-accent-soft), transparent);
+}
+
+.hero__inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.hero__greeting {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.hero__title {
+  font-size: clamp(2rem, 8vw, 3.75rem);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hero__name {
+  color: var(--color-accent);
+}
+
+.hero__tagline {
+  font-family: var(--font-mono);
+  font-size: clamp(0.95rem, 3.6vw, 1.25rem);
+  color: var(--color-text-muted);
+}
+
+.hero__lead {
+  max-width: 46ch;
+  color: var(--color-text-muted);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.hero__scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-5);
+  transform: translateX(-50%);
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  animation: hint-bounce 2.4s ease-in-out infinite;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.hero__scroll-hint:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+@keyframes hint-bounce {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 6px);
+  }
+}
+
+/* ── 6. 섹션 공통 ─────────────────────────────────────────── */
+.section {
+  padding-block: var(--space-8);
+}
+
+.section--tinted {
+  background-color: var(--color-surface-2);
+  transition: background-color var(--transition);
+}
+
+.section__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+  margin-bottom: var(--space-2);
+}
+
+.section__title {
+  font-size: clamp(1.6rem, 5.5vw, 2.4rem);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-3);
+}
+
+.section__lead {
+  max-width: 54ch;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-6);
+}
+
+/* 등장 애니메이션 — Intersection Observer 가 .is-visible 을 붙인다 */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── 7. About ─────────────────────────────────────────────── */
+.about {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.about__figure {
+  max-width: 16rem;
+}
+
+.about__photo {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.about__caption {
+  margin-top: var(--space-3);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.about__body {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.about__body p {
+  color: var(--color-text-muted);
+}
+
+.about__body strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.about__facts {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.about__fact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.about__fact-key {
+  min-width: 3.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-accent);
+}
+
+.about__fact-value {
+  color: var(--color-text-muted);
+}
+
+/* ── 8. Skills (Grid) ─────────────────────────────────────── */
+.skills {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.skill-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition),
+    border-color var(--transition);
+}
+
+.skill-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.skill-card__title {
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.skill-card__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tag {
+  padding: 0.2rem 0.7rem;
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.skill-card__note {
+  margin-top: auto;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* ── 9. Projects ──────────────────────────────────────────── */
+/* 로딩 · 에러 · 빈 상태가 공유하는 자리 */
+.projects__status {
+  display: grid;
+  place-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.projects__status:empty {
+  display: none;
+}
+
+.state {
+  display: grid;
+  place-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-4);
+  width: 100%;
+  background-color: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.state__title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.state__desc {
+  max-width: 40ch;
+  font-size: 0.92rem;
+}
+
+.spinner {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 카드 격자 — 화면 너비에 따라 열 수가 스스로 바뀐다.
+   몇 개가 올지 모르는 목록이라 열 수를 못 박지 않고 auto-fit + minmax 를 쓴다. */
+.projects__grid {
+  display: grid;
+  gap: var(--space-4);
+  /* 위쪽 한계를 24rem 으로 잡아, 저장소가 하나뿐일 때 카드가 한 줄을 다 차지하지
+     않도록 한다. 열 수는 여전히 화면 너비에 따라 auto-fit 이 정한다. */
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 24rem));
+  justify-content: start;
+}
+
+.projects__grid:empty {
+  display: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition),
+    border-color var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-lg);
+}
+
+.card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.card__title {
+  font-size: 1.05rem;
+  word-break: break-word;
+}
+
+.card__link {
+  transition: color var(--transition);
+}
+
+.card__link:hover {
+  color: var(--color-accent);
+}
+
+.card__lang {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-accent);
+}
+
+.card__desc {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+}
+
+.card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* ── 10. Contact ──────────────────────────────────────────── */
+.contact {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.contact__links {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+
+.contact__link-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.contact__link-key {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.contact__link {
+  color: var(--color-text-muted);
+  word-break: break-all;
+  transition: color var(--transition);
+}
+
+.contact__link:hover {
+  color: var(--color-accent);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.field__input {
+  width: 100%;
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.field__input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.field__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.field__input--area {
+  resize: vertical;
+  min-height: 8rem;
+}
+
+/* 검증에 걸린 입력 — JS 가 .is-invalid 를 붙인다 */
+.field__input.is-invalid {
+  border-color: var(--color-danger);
+}
+
+.field__input.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(194, 51, 77, 0.18);
+}
+
+.field__error {
+  font-size: 0.85rem;
+  color: var(--color-danger);
+}
+
+.form__success {
+  padding: var(--space-3);
+  background-color: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--color-success);
+}
+
+.form__note {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+/* ── 11. Footer ───────────────────────────────────────────── */
+.footer {
+  padding-block: var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.footer__inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.footer__social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.footer__link {
+  transition: color var(--transition);
+}
+
+.footer__link:hover {
+  color: var(--color-accent);
+}
+
+.footer__built {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+/* ── 12. 맨 위로 버튼 ─────────────────────────────────────── */
+.scroll-top {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 40;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  border: none;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(0.75rem);
+  pointer-events: none;
+  transition: opacity var(--transition), transform var(--transition),
+    background-color var(--transition);
+}
+
+/* 스크롤 300px 이상에서 JS 가 붙이는 클래스 */
+.scroll-top.is-visible {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.scroll-top:hover {
+  background-color: var(--color-accent-strong);
+}
+
+/* ── 13. 태블릿 (768px 이상) ──────────────────────────────── */
+@media (min-width: 768px) {
+  :root {
+    --header-height: 4.5rem;
+  }
+
+  .section {
+    padding-block: var(--space-9);
+  }
+
+  /* 메뉴가 헤더 안으로 들어오고 햄버거는 사라진다 */
+  .nav__menu {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .hamburger {
+    display: none;
+  }
+
+  .about {
+    grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+
+  .about__figure {
+    max-width: none;
+  }
+
+  .contact {
+    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+    gap: var(--space-7);
+  }
+
+  .form {
+    padding: var(--space-6);
+  }
+
+  .footer__inner {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+}
+
+/* ── 14. 데스크톱 (1024px 이상) ───────────────────────────── */
+@media (min-width: 1024px) {
+  .container {
+    padding-inline: var(--space-6);
+  }
+
+  .nav__link {
+    padding-inline: var(--space-4);
+  }
+
+  .hero__lead {
+    font-size: 1.05rem;
+  }
+
+  .skills {
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  }
+
+  .projects__grid {
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 24rem));
+  }
+
+  .scroll-top {
+    right: var(--space-6);
+    bottom: var(--space-6);
+  }
+}
+
+/* ── 15. 움직임을 줄이는 설정을 켠 사용자 ─────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
