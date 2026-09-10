@@ -13,11 +13,13 @@
 
   const statusBox = document.querySelector('#projects-status');
   const grid = document.querySelector('#projects-grid');
+  const filterBox = document.querySelector('#project-filters');
 
   /* ── 상태 ────────────────────────────────────────────────── */
   const state = {
     status: 'idle', // 'idle' | 'loading' | 'success' | 'error'
-    repos: [],
+    repos: [], // 받아 온 저장소 전체
+    language: 'all', // 고른 언어 필터
     errorMessage: '',
   };
 
@@ -75,6 +77,36 @@
   };
 
   /* ── 렌더링 ──────────────────────────────────────────────── */
+
+  /* 버튼 목록은 받아 온 저장소에서 만든다. 언어를 미리 적어 두면 새 언어로
+     저장소를 만들 때마다 코드를 고쳐야 하기 때문이다. */
+  const renderFilters = (repos) => {
+    /* map 으로 언어만 뽑고, filter 로 언어가 없는 저장소를 걷어낸 뒤 중복을 없앤다 */
+    const languages = [...new Set(repos.map(({ language }) => language).filter(Boolean))].sort();
+
+    if (languages.length === 0) {
+      filterBox.hidden = true;
+      filterBox.innerHTML = '';
+      return;
+    }
+
+    filterBox.innerHTML = ['all', ...languages]
+      .map((language) => {
+        const isActive = language === state.language;
+        const label = language === 'all' ? `전체 (${repos.length})` : language;
+
+        return `
+          <button class="filter-btn${isActive ? ' is-active' : ''}" type="button"
+                  data-language="${escapeHtml(language)}" aria-pressed="${isActive}">
+            ${escapeHtml(label)}
+          </button>
+        `;
+      })
+      .join('');
+
+    filterBox.hidden = false;
+  };
+
   const createCard = (repo) => {
     /* 구조분해 할당으로 필요한 값만 꺼내고, 긴 이름은 짧게 바꿔 받는다 */
     const {
@@ -121,6 +153,7 @@
 
   function render() {
     if (state.status === 'loading') {
+      filterBox.hidden = true;
       grid.innerHTML = '';
       statusBox.innerHTML = renderState({
         title: '불러오는 중...',
@@ -131,6 +164,7 @@
     }
 
     if (state.status === 'error') {
+      filterBox.hidden = true;
       grid.innerHTML = '';
       statusBox.innerHTML = renderState({
         title: '프로젝트를 불러올 수 없습니다',
@@ -146,6 +180,7 @@
 
     /* 성공했지만 저장소가 하나도 없는 경우 */
     if (state.repos.length === 0) {
+      filterBox.hidden = true;
       grid.innerHTML = '';
       statusBox.innerHTML = renderState({
         title: '표시할 프로젝트가 없습니다',
@@ -154,8 +189,26 @@
       return;
     }
 
+    renderFilters(state.repos);
+
+    /* 고른 언어만 남긴다. 원본 state.repos 는 그대로 두고 새 배열을 만든다.
+       그래야 필터를 '전체' 로 되돌릴 때 다시 요청하지 않아도 된다. */
+    const visible =
+      state.language === 'all'
+        ? state.repos
+        : state.repos.filter(({ language }) => language === state.language);
+
+    if (visible.length === 0) {
+      grid.innerHTML = '';
+      statusBox.innerHTML = renderState({
+        title: '조건에 맞는 프로젝트가 없습니다',
+        description: `${escapeHtml(state.language)} 로 만든 저장소가 없습니다. 다른 언어를 골라 보세요.`,
+      });
+      return;
+    }
+
     statusBox.innerHTML = '';
-    grid.innerHTML = state.repos.map(createCard).join('');
+    grid.innerHTML = visible.map(createCard).join('');
   }
 
   /* ── 데이터 불러오기 ─────────────────────────────────────── */
@@ -180,7 +233,7 @@
           new Date(b.updated_at) - new Date(a.updated_at)
       );
 
-      setState({ status: 'success', repos });
+      setState({ status: 'success', repos, language: 'all' });
     } catch (error) {
       /* fetch 는 네트워크가 끊겼을 때도 예외를 던진다.
          위에서 만든 안내 문장이 있으면 그대로 쓰고, 없으면 일반 문장으로 대신한다. */
@@ -201,6 +254,17 @@
     if (event.target.closest('[data-retry]')) {
       loadRepos();
     }
+  });
+
+  /* 필터 버튼도 render() 가 다시 그리므로 같은 방식으로 바깥에서 한 번만 받는다.
+     버튼은 상태만 바꾸고, 화면을 고치는 일은 render() 가 맡는다. */
+  filterBox.addEventListener('click', (event) => {
+    const button = event.target.closest('.filter-btn');
+
+    if (!button) {
+      return;
+    }
+    setState({ language: button.dataset.language });
   });
 
   loadRepos();
