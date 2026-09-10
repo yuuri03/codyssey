@@ -139,6 +139,13 @@ Projects 섹션은 요청 결과에 따라 네 화면 중 하나만 보여 줍�
 | --- | --- |
 | ![성공 상태](../docs/screenshots/portfolio-website/desktop_projects.png) | ![에러 상태](../docs/screenshots/portfolio-website/projects_error.png) |
 
+성공 화면 위에는 **언어별 필터 버튼**이 함께 나타납니다. 버튼 목록은 코드에 미리
+적어 둔 것이 아니라 받아 온 저장소에서 뽑아 만들기 때문에, 새 언어로 저장소를
+만들면 버튼도 저절로 늘어납니다. 고른 언어에 해당하는 저장소가 하나도 없으면
+"조건에 맞는 프로젝트가 없습니다" 를 보여 줍니다.
+
+![언어 필터를 고른 상태](../docs/screenshots/portfolio-website/projects_filter.png)
+
 에러 화면은 GitHub 이 403 을 돌려주는 상황을 흉내 내 받아 낸 것입니다.
 인증 없이 GitHub API 를 부르면 시간당 60회까지만 허용되는데, 그 한도를 넘긴
 경우에는 아래처럼 원인과 대처를 함께 알려 줍니다.
@@ -417,10 +424,10 @@ const applyTheme = (theme) => {
 읽기와 쓰기를 모두 `try/catch` 로 감싸 테마 하나 때문에 페이지가 멈추지 않게
 했습니다.
 
-#### 나머지 둘도 같은 모양입니다
+#### 나머지도 같은 모양입니다
 
 ```
-[Projects]
+[Projects — 데이터 요청]
 페이지 열림 / 다시 시도 클릭
       ↓
 state.status = 'loading'                       →  render()  →  스피너
@@ -428,12 +435,21 @@ state.status = 'loading'                       →  render()  →  스피너
 성공: state.status = 'success', state.repos    →  render()  →  카드 목록
 실패: state.status = 'error',   errorMessage   →  render()  →  안내 + 다시 시도
 
+[Projects — 언어 필터]
+필터 버튼 클릭  →  state.language = 'Python'  →  render()  →  목록과 버튼 강조 갱신
+
 [문의 폼]
 제출 클릭  →  preventDefault()  →  칸마다 검증 → 에러 문장 결정
                                                     ↓
                                         renderError() → 메시지 표시/숨김
                                                       → 입력 칸 테두리 색
 ```
+
+언어 필터가 이 구조의 이점을 가장 잘 보여 줍니다. 버튼을 누르는 코드는
+`setState({ language: button.dataset.language })` 한 줄이 전부입니다. 카드를
+지우거나 버튼의 강조를 옮기는 코드는 어디에도 없습니다. 상태가 바뀌면
+`render()` 가 그 상태를 보고 목록과 버튼을 **함께** 다시 그리기 때문에, 목록만
+바뀌고 버튼 강조는 그대로 남는 식으로 둘이 어긋날 수 없습니다.
 
 폼의 검증 함수는 화면을 건드리지 않고 "무엇이 잘못됐는지" 를 문장으로만
 돌려줍니다. 그 문장을 화면에 반영하는 것은 `renderError()` 하나뿐입니다.
@@ -503,16 +519,18 @@ const isRateLimited =
 
 ### 5.3 GitHub 데이터가 카드가 되기까지
 
-응답으로 온 객체 배열이 화면의 카드가 되는 과정은 네 단계입니다.
+응답으로 온 객체 배열이 화면의 카드가 되는 과정은 다섯 단계입니다.
 
 ```
 [① 받기]        JSON 배열  (저장소 객체 수십 개 항목)
      ↓ sort
 [② 정렬하기]    별 많은 순 → 최근 갱신 순
+     ↓ filter
+[③ 걸러내기]    고른 언어의 저장소만        (전체를 골랐으면 건너뜀)
      ↓ map
-[③ 변환하기]    객체 하나 → 카드 HTML 문자열 하나
+[④ 변환하기]    객체 하나 → 카드 HTML 문자열 하나
      ↓ join('')
-[④ 붙이기]      문자열 배열 → 하나의 문자열 → innerHTML
+[⑤ 붙이기]      문자열 배열 → 하나의 문자열 → innerHTML
 ```
 
 **② 정렬** — 무엇을 먼저 보여 줄지 정합니다.
@@ -525,7 +543,31 @@ const repos = data.sort(
 );
 ```
 
-**③ 변환** — 여기가 핵심입니다. `map` 은 배열의 각 요소를 다른 값으로 바꿔
+**③ 걸러내기** — `filter` 는 조건을 만족하는 요소만 남긴 **새 배열**을 만듭니다.
+`map` 이 길이를 유지한 채 값을 바꾼다면, `filter` 는 값을 그대로 두고 길이를
+줄입니다.
+
+```javascript
+const visible =
+  state.language === 'all'
+    ? state.repos
+    : state.repos.filter(({ language }) => language === state.language);
+```
+
+여기서 중요한 것은 **원본 `state.repos` 를 건드리지 않는다**는 점입니다.
+`filter` 는 걸러낸 결과를 새 배열로 돌려주므로 받아 온 전체 목록이 그대로
+남아 있고, 그래서 '전체' 버튼을 다시 누를 때 API 를 또 부르지 않아도 됩니다.
+`splice` 로 원본에서 지웠다면 되돌릴 방법이 없어 다시 요청해야 하고, 그만큼
+시간당 60회의 한도를 빨리 쓰게 됩니다.
+
+버튼 목록도 같은 두 메서드로 만듭니다. `map` 으로 언어만 뽑고, `filter` 로 언어가
+없는 저장소(`null`)를 걷어낸 뒤 `Set` 으로 중복을 없앱니다.
+
+```javascript
+const languages = [...new Set(repos.map(({ language }) => language).filter(Boolean))].sort();
+```
+
+**④ 변환** — 여기가 핵심입니다. `map` 은 배열의 각 요소를 다른 값으로 바꿔
 **같은 길이의 새 배열**을 만듭니다. 저장소가 5개면 카드 문자열도 5개입니다.
 데이터를 화면으로 바꾸는 일이 곧 "배열을 다른 배열로 바꾸는 일" 이라는 점이
 코드에 그대로 드러납니다.
@@ -568,12 +610,12 @@ const createCard = (repo) => {
 (`description`, `language`)는 `||` 로 대체 문구를 정해 `null` 이 화면에
 그대로 나오는 일을 막습니다.
 
-**④ 붙이기** — `map` 이 돌려준 것은 문자열 **배열**이라, 그대로 `innerHTML` 에
+**⑤ 붙이기** — `map` 이 돌려준 것은 문자열 **배열**이라, 그대로 `innerHTML` 에
 넣으면 사이에 쉼표가 찍힙니다. `join('')` 으로 이어 붙여 하나의 문자열로 만든 뒤
 넣습니다.
 
 ```javascript
-grid.innerHTML = state.repos.map(createCard).join('');
+grid.innerHTML = visible.map(createCard).join('');
 ```
 
 **받아 온 문자열을 그대로 넣지 않는 이유** — 저장소 이름과 설명은 API 가 준,
@@ -597,6 +639,7 @@ const escapeHtml = (value) =>
 | --- | --- | --- |
 | `map` | `projects.js` | 저장소 객체 배열 → 카드 HTML 문자열 배열 |
 | `map` | `contact-form.js` | 입력 칸 이름 배열 → 검증 통과 여부 배열 |
+| `filter` | `projects.js` | 고른 언어의 저장소만 남기고, 버튼 목록에서 빈 언어를 걷어냄 |
 | `every` | `contact-form.js` | 그 결과 배열이 전부 통과인지 판정 |
 | `forEach` | `navigation.js`, `scroll.js` | 요소마다 리스너를 붙이거나 클래스를 토글 |
 | `sort` | `projects.js` | 별과 갱신일 기준으로 순서 결정 |
@@ -658,12 +701,13 @@ const isValid = results.every((passed) => passed);
 
 ### 6.1 상태를 객체 하나로 모은 이유
 
-Projects 의 상태는 변수 세 개로 흩어 두지 않고 객체 하나에 모았습니다.
+Projects 의 상태는 변수 네 개로 흩어 두지 않고 객체 하나에 모았습니다.
 
 ```javascript
 const state = {
   status: 'idle',   // 'idle' | 'loading' | 'success' | 'error'
-  repos: [],
+  repos: [],        // 받아 온 저장소 전체
+  language: 'all',  // 고른 언어 필터
   errorMessage: '',
 };
 
@@ -673,7 +717,7 @@ const setState = (patch) => {
 };
 ```
 
-`let isLoading = false; let repos = []; let error = '';` 처럼 따로 두어도
+`let isLoading = false; let repos = []; let language = 'all';` 처럼 따로 두어도
 동작은 합니다. 그래도 객체로 묶은 이유가 네 가지입니다.
 
 **하나, 상태를 바꾸고 화면 갱신을 잊는 일이 구조적으로 없어집니다.**
@@ -693,9 +737,11 @@ const setState = (patch) => {
 `console.log(state)` 한 줄이면 됩니다. 변수가 흩어져 있으면 세 개를 다 찍어 보고
 머릿속에서 조합해야 합니다.
 
-**넷, 상태를 늘릴 때 고칠 곳이 적습니다.** 나중에 정렬 기준이나 필터를 더해도
-`state` 에 항목 하나를 넣고 `render()` 안에서 읽으면 끝입니다. 변수를 더 만들면
-그 변수를 바꾸는 모든 자리에서 `render()` 를 부르는지 다시 확인해야 합니다.
+**넷, 상태를 늘릴 때 고칠 곳이 적습니다.** 언어 필터를 나중에 붙일 때 실제로
+그랬습니다. `state` 에 `language` 한 줄을 넣고, `render()` 안에서 그 값을 읽어
+목록을 거르는 코드를 더한 것이 전부입니다. 버튼의 클릭 처리기는 상태만 바꾸므로
+`render()` 를 부르는지 따로 확인할 필요가 없었습니다. 변수를 흩어 두었다면
+`language` 를 바꾸는 자리마다 화면 갱신을 빠뜨리지 않았는지 확인해야 합니다.
 
 React 가 하는 일도 결국 이것입니다. 상태를 바꾸면 그 상태로 화면을 다시 그리는
 함수가 불립니다. 다른 점은 React 가 바뀐 부분만 골라 갱신해 준다는 것이고,
@@ -809,18 +855,17 @@ GitHub Pages 로 `codyssey` 저장소를 통째로 올리고, 이 폴더를 하�
 
 ## 9. 이번 미션에서 하지 않은 것
 
-선택 과제(프로젝트 언어별 필터링, Hero 타이핑 효과, Formspree 연동, 시스템 다크
-모드 감지)는 넣지 않았습니다. 필수 요구사항의 흐름을 분명하게 남기는 쪽에
-집중했습니다.
+Hero 의 타이핑 효과, Formspree 를 이용한 폼 실제 전송, `prefers-color-scheme`
+로 시스템 다크 모드를 감지하는 기능은 넣지 않았습니다. 필수 요구사항의 흐름을
+분명하게 남기는 쪽에 집중했습니다.
 
-이 결정으로 코드에서 빠진 것이 하나 있습니다. 언어별 필터가 `array.filter()` 를
-쓰던 자리였으므로, 지금 Projects 의 변환 과정은 `sort → map → join` 세 단계입니다.
-필터를 넣는다면 `map` 앞에 한 단계가 더 붙는 모양이 됩니다.
+프로젝트 언어별 필터링은 넣었습니다. `array.filter()` 로 데이터를 걸러 화면을
+바꾸는 과정이 [5.3](#53-github-데이터가-카드가-되기까지) 의 변환 단계와
+[6.1](#61-상태를-객체-하나로-모은-이유) 의 상태 관리를 함께 보여 주기 때문입니다.
 
-```javascript
-// 언어 필터를 넣는다면 map 앞에 이 단계가 붙는다
-const visible = state.repos.filter(({ language }) => language === state.language);
-```
+시스템 다크 모드 감지를 뺀 자리에는, 저장된 선택이 없으면 라이트 모드로 시작하는
+규칙만 남겼습니다. 다만 움직임을 줄이는 설정(`prefers-reduced-motion`)은 선택
+과제가 아니라 접근성 대응이므로 그대로 지원합니다.
 
 ## 저장소
 
