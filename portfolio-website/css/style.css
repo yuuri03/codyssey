@@ -410,10 +410,37 @@ code {
   color: var(--color-accent);
 }
 
-.hero__tagline {
+/* 타이핑 효과. 글자 수가 변하는 동안 아래 내용이 들썩이지 않도록
+   최소 높이를 잡아 둔다. */
+.hero__typing {
+  min-height: 2rem;
   font-family: var(--font-mono);
   font-size: clamp(0.95rem, 3.6vw, 1.25rem);
   color: var(--color-text-muted);
+}
+
+.hero__caret {
+  display: inline-block;
+  width: 0.6ch;
+  margin-left: 0.1ch;
+  background-color: var(--color-accent);
+  animation: caret-blink 1s step-end infinite;
+}
+
+/* 빈 인라인 요소는 높이가 0이라 커서가 보이지 않는다.
+   화면에 읽히지 않는 공백 문자로 한 줄 높이를 만든다. */
+.hero__caret::before {
+  content: '\00a0';
+}
+
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .hero__lead {

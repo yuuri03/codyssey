@@ -18,7 +18,7 @@
 6. [설계 판단](#6-설계-판단)
 7. [동작 기준값](#7-동작-기준값)
 8. [배포](#8-배포)
-9. [이번 미션에서 하지 않은 것](#9-이번-미션에서-하지-않은-것)
+9. [보너스 과제](#9-보너스-과제)
 
 ---
 
@@ -102,6 +102,9 @@ Skills 와 Projects 의 카드 격자는 미디어 쿼리 없이도 열 수가 �
 
 헤더 오른쪽 버튼을 누르면 페이지 전체 색이 바뀝니다. 선택한 테마는
 로컬스토리지에 저장되므로, 새로고침하거나 브라우저를 껐다 켜도 그대로 유지됩니다.
+
+아직 고른 적이 없다면 운영체제의 다크 모드 설정을 따라 시작합니다
+([9.3](#93-시스템-다크-모드-감지)).
 
 ![다크 모드](../docs/screenshots/portfolio-website/desktop_dark.png)
 
@@ -208,6 +211,7 @@ portfolio-website/
 │   ├── theme.js            다크 모드
 │   ├── navigation.js       햄버거 메뉴, 부드러운 스크롤
 │   ├── scroll.js           헤더 배경, 맨 위로 버튼, 등장 애니메이션, 현재 섹션
+│   ├── hero.js             Hero 타이핑 효과
 │   ├── projects.js         GitHub API 연동과 상태별 렌더링
 │   └── contact-form.js     문의 폼 유효성 검사
 ├── images/
@@ -216,7 +220,7 @@ portfolio-website/
 └── README.md
 ```
 
-스크립트를 다섯으로 더 나눈 기준은 **파일 하나가 책임지는 상태를 하나로** 두는
+스크립트를 여섯으로 더 나눈 기준은 **파일 하나가 책임지는 상태를 하나로** 두는
 것입니다. 다크 모드가 이상하면 `theme.js` 만, 저장소 목록이 안 나오면
 `projects.js` 만 보면 됩니다. 파일마다 즉시 실행 함수로 감싸 두어 `const` 이름이
 서로 부딪히지 않습니다.
@@ -236,7 +240,7 @@ portfolio-website/
 
 ```html
 <script>
-  document.documentElement.dataset.theme = saved || 'light';
+  document.documentElement.dataset.theme = saved || (prefersDark ? 'dark' : 'light');
 </script>
 ```
 
@@ -853,19 +857,98 @@ GitHub Pages 로 `codyssey` 저장소를 통째로 올리고, 이 폴더를 하�
 
 ---
 
-## 9. 이번 미션에서 하지 않은 것
+## 9. 보너스 과제
 
-Hero 의 타이핑 효과, Formspree 를 이용한 폼 실제 전송, `prefers-color-scheme`
-로 시스템 다크 모드를 감지하는 기능은 넣지 않았습니다. 필수 요구사항의 흐름을
-분명하게 남기는 쪽에 집중했습니다.
+네 가지 중 셋을 넣었습니다.
 
-프로젝트 언어별 필터링은 넣었습니다. `array.filter()` 로 데이터를 걸러 화면을
-바꾸는 과정이 [5.3](#53-github-데이터가-카드가-되기까지) 의 변환 단계와
-[6.1](#61-상태를-객체-하나로-모은-이유) 의 상태 관리를 함께 보여 주기 때문입니다.
+| 보너스 과제 | 상태 | 구현한 곳 |
+| --- | --- | --- |
+| 프로젝트 언어별 필터링 | 완료 | `projects.js` |
+| Hero 타이핑 효과 | 완료 | `hero.js` |
+| 시스템 다크 모드 감지 | 완료 | `theme.js`, `<head>` 인라인 스크립트 |
+| 폼 실제 전송 (Formspree / EmailJS) | 미구현 | — |
 
-시스템 다크 모드 감지를 뺀 자리에는, 저장된 선택이 없으면 라이트 모드로 시작하는
-규칙만 남겼습니다. 다만 움직임을 줄이는 설정(`prefers-reduced-motion`)은 선택
-과제가 아니라 접근성 대응이므로 그대로 지원합니다.
+### 9.1 프로젝트 언어별 필터링
+
+`array.filter()` 로 데이터를 걸러 화면을 바꾸는 과정은
+[5.3](#53-github-데이터가-카드가-되기까지) 의 변환 단계와
+[6.1](#61-상태를-객체-하나로-모은-이유) 의 상태 관리에 함께 적었습니다.
+
+### 9.2 Hero 타이핑 효과
+
+문장을 한 글자씩 늘렸다 줄이며 다음 문장으로 넘어갑니다. 세 문장을 순환합니다.
+아래는 첫 문장을 찍는 중에 잡은 화면입니다.
+
+![타이핑 중인 Hero](../docs/screenshots/portfolio-website/hero_typing.png)
+
+```javascript
+const tick = () => {
+  const phrase = PHRASES[phraseIndex];
+
+  charCount += isErasing ? -1 : 1;
+  output.textContent = phrase.slice(0, charCount);
+  ...
+  window.setTimeout(tick, isErasing ? ERASE_DELAY : TYPE_DELAY);
+};
+```
+
+구현에서 정한 것이 세 가지입니다.
+
+**`setInterval` 이 아니라 `setTimeout` 을 매번 다시 겁니다.** 글자를 찍는
+간격(90ms), 지우는 간격(45ms), 다 찍고 머무는 시간(1600ms)이 서로 달라서
+고정 간격으로는 표현할 수 없기 때문입니다.
+
+**글자를 이어 붙이지 않고 `slice` 로 잘라 넣습니다.** `textContent +=` 로 한
+글자씩 붙이면 지울 때 되돌릴 방법이 없고, 화면과 글자 수 상태가 한번 어긋나면
+맞추기 어렵습니다. "몇 글자까지 보여 줄지" 를 숫자 하나로 두고 그 길이만큼
+잘라 넣으면 찍기와 지우기가 같은 코드가 됩니다.
+
+**글자 수가 변해도 아래 내용이 들썩이지 않도록** 문단에 `min-height` 를
+잡아 두었습니다. 커서는 빈 인라인 요소라 높이가 0이므로, 화면에 읽히지 않는
+공백 문자로 한 줄 높이를 만듭니다.
+
+움직임을 줄이는 설정(`prefers-reduced-motion`)을 켠 사용자에게는 애니메이션
+없이 첫 문장을 그대로 보여 줍니다.
+
+### 9.3 시스템 다크 모드 감지
+
+테마를 정하는 기준을 두 단계로 두었습니다.
+
+```
+① 이 페이지에서 직접 고른 적이 있는가?  →  그 선택을 따른다
+② 없다면 운영체제 설정(prefers-color-scheme)을 따른다
+```
+
+첫 방문에서는 `<head>` 의 인라인 스크립트가 이 기준으로 시작 테마를 정합니다.
+
+```javascript
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+document.documentElement.dataset.theme = saved || (prefersDark ? 'dark' : 'light');
+```
+
+페이지를 열어 둔 채로 운영체제 설정을 바꾸는 경우도 따라갑니다. 다만 사용자가
+이 페이지에서 직접 고른 적이 있으면 그 선택을 덮어쓰지 않습니다.
+
+```javascript
+systemDark.addEventListener('change', (event) => {
+  if (readStored()) {
+    return;
+  }
+  applyTheme(event.matches ? 'dark' : 'light');
+});
+```
+
+이 순서를 지키지 않으면 "다크로 바꿔 뒀는데 노트북이 저녁에 라이트로 전환되면서
+페이지도 같이 바뀌는" 일이 생깁니다. 사용자가 명시적으로 고른 값이 언제나 시스템
+설정보다 우선입니다.
+
+### 9.4 폼 실제 전송 — 넣지 않음
+
+Formspree 나 EmailJS 는 계정을 만들어 받은 엔드포인트(또는 키)가 있어야 동작합니다.
+그 값 없이 코드만 넣으면 "보내기를 눌렀는데 아무 데도 가지 않는" 상태가 되므로
+넣지 않았습니다. 지금은 입력값 검증까지만 하고, 폼 아래에 실제로 전송되지 않는다는
+안내를 적어 두었습니다.
 
 ## 저장소
 

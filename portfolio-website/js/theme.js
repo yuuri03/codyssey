@@ -10,9 +10,18 @@
   const root = document.documentElement;
   const toggleButton = document.querySelector('#theme-toggle');
   const toggleIcon = document.querySelector('#theme-toggle-icon');
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 
   /* localStorage 는 시크릿 모드나 저장 차단 설정에서 예외를 던진다.
      테마 하나 때문에 페이지 전체가 멈추면 안 되므로 감싸 둔다. */
+  const readStored = () => {
+    try {
+      return localStorage.getItem(STORAGE_KEY);
+    } catch (error) {
+      return null;
+    }
+  };
+
   const writeStored = (theme) => {
     try {
       localStorage.setItem(STORAGE_KEY, theme);
@@ -40,5 +49,15 @@
 
     applyTheme(nextTheme);
     writeStored(nextTheme);
+  });
+
+  /* 보너스: 운영체제의 다크 모드 설정을 따라간다.
+     단, 사용자가 이 페이지에서 직접 고른 적이 있으면 그 선택을 덮어쓰지 않는다.
+     첫 방문의 시작값은 <head> 의 인라인 스크립트가 같은 기준으로 정한다. */
+  systemDark.addEventListener('change', (event) => {
+    if (readStored()) {
+      return;
+    }
+    applyTheme(event.matches ? 'dark' : 'light');
   });
 })();
