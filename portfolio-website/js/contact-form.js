@@ -55,7 +55,15 @@
     const errorBox = document.querySelector(`#${fieldName}-error`);
     const hasError = message !== '';
 
-    input.classList.toggle('is-invalid', hasError);
+    /* 검증에 걸린 칸만 테두리를 붉게 한다.
+       classList.toggle(name, hasError) 한 줄로도 되지만, 붙일 때와 뗄 때가
+       각각 어느 경우인지 드러나도록 add 와 remove 로 나눠 적었다. */
+    if (hasError) {
+      input.classList.add('is-invalid');
+    } else {
+      input.classList.remove('is-invalid');
+    }
+
     input.setAttribute('aria-invalid', String(hasError));
     errorBox.textContent = message;
     errorBox.hidden = !hasError;
