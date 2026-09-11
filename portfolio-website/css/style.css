@@ -8,28 +8,30 @@
    색·간격·모서리·그림자를 한곳에 모아 둔다.
    다크 모드는 이 값들만 바꿔 끼우면 되므로, 규칙을 두 벌 쓰지 않아도 된다. */
 :root {
-  /* 색 — 라이트 모드 */
-  --color-bg: #f7f7fb;
-  --color-surface: #ffffff;
-  --color-surface-2: #f0f0f7;
-  --color-text: #16161d;
-  --color-text-muted: #5c5c6e;
-  --color-border: #e3e3ee;
-  --color-accent: #5b5bd6;
-  --color-accent-strong: #4646bd;
-  --color-accent-soft: rgba(91, 91, 214, 0.1);
-  --color-on-accent: #ffffff;
-  --color-header: rgba(247, 247, 251, 0.78);
-  --color-danger: #c2334d;
-  --color-success: #167a56;
+  /* 색 — 라이트 모드 (종이 위의 벽돌빛)
+     인쇄용 포트폴리오의 아이보리 바탕과 테라코타 레드를 그대로 가져왔다. */
+  --color-bg: #faf8ef;
+  --color-surface: #fffdf7;
+  --color-surface-2: #f3efe0;
+  --color-text: #241a14;
+  --color-text-muted: #6b5a50;
+  --color-border: #e2d9c6;
+  --color-accent: #a5311a;
+  --color-accent-strong: #7f2412;
+  --color-accent-soft: rgba(165, 49, 26, 0.1);
+  --color-on-accent: #fdfbf4;
+  --color-header: rgba(250, 248, 239, 0.82);
+  --color-danger: #b3261e;
+  --color-success: #2f6b45;
 
-  /* 그림자 */
-  --shadow-sm: 0 1px 2px rgba(16, 16, 32, 0.06);
-  --shadow-md: 0 6px 18px rgba(16, 16, 32, 0.08);
-  --shadow-lg: 0 16px 40px rgba(16, 16, 32, 0.14);
+  /* 그림자 — 갈색 기가 도는 종이 위라 검정 대신 고동색으로 깐다 */
+  --shadow-sm: 0 1px 2px rgba(60, 35, 20, 0.07);
+  --shadow-md: 0 6px 18px rgba(60, 35, 20, 0.1);
+  --shadow-lg: 0 16px 40px rgba(60, 35, 20, 0.16);
 
   /* 글꼴 */
   --font-sans: 'IBM Plex Sans KR', 'Malgun Gothic', system-ui, -apple-system, sans-serif;
+  --font-display: 'Playfair Display', 'Nanum Myeongjo', 'Batang', serif;
   --font-mono: 'JetBrains Mono', 'D2Coding', ui-monospace, monospace;
 
   /* 간격 — 4px 배수로 통일한다 */
@@ -56,24 +58,26 @@
 }
 
 /* 색만 바꿔 끼우는 다크 모드 */
+/* 다크 모드 — 같은 벽돌빛을 어두운 흙색 위에 올린다.
+   어두운 바탕에서는 진한 벽돌색의 대비가 모자라므로 한 단계 밝은 톤을 쓴다. */
 [data-theme='dark'] {
-  --color-bg: #0d0d14;
-  --color-surface: #16161f;
-  --color-surface-2: #1e1e2a;
-  --color-text: #ecedf5;
-  --color-text-muted: #9c9cb2;
-  --color-border: #2b2b3b;
-  --color-accent: #8b8bf0;
-  --color-accent-strong: #a7a7ff;
-  --color-accent-soft: rgba(139, 139, 240, 0.16);
-  --color-on-accent: #10101a;
-  --color-header: rgba(13, 13, 20, 0.78);
-  --color-danger: #ff8095;
-  --color-success: #4ecf9e;
+  --color-bg: #1a110d;
+  --color-surface: #241811;
+  --color-surface-2: #2e1f16;
+  --color-text: #f4ece0;
+  --color-text-muted: #b9a494;
+  --color-border: #3d2a1f;
+  --color-accent: #e07a5f;
+  --color-accent-strong: #f0937a;
+  --color-accent-soft: rgba(224, 122, 95, 0.16);
+  --color-on-accent: #1a110d;
+  --color-header: rgba(26, 17, 13, 0.82);
+  --color-danger: #ff9a8f;
+  --color-success: #6fcf97;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
 /* ── 2. 리셋과 기본값 ──────────────────────────────────────── */
@@ -270,9 +274,10 @@ code {
 }
 
 .nav__logo {
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
 }
 
 .nav__logo-dot {
@@ -391,19 +396,26 @@ code {
   gap: var(--space-4);
 }
 
+/* 인쇄물 표지의 타원 배지를 옮겨 왔다.
+   가로·세로 반지름을 따로 줘야(50% / 100%) 정원이 아닌 타원이 된다. */
 .hero__greeting {
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  letter-spacing: 0.12em;
+  align-self: flex-start;
+  padding: 0.45rem 1.9rem;
+  border: 1.5px solid var(--color-accent);
+  border-radius: 50% / 100%;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent);
 }
 
 .hero__title {
+  font-family: var(--font-display);
   font-size: clamp(2rem, 8vw, 3.75rem);
   line-height: 1.25;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .hero__name {
@@ -496,18 +508,34 @@ code {
   transition: background-color var(--transition);
 }
 
+/* 인쇄물처럼 머리글 옆으로 가는 선을 긋는다.
+   선의 길이를 정하지 않고 flex 로 남는 공간을 채우게 하면 글자 길이와
+   화면 너비가 달라져도 항상 오른쪽 끝까지 맞는다. */
 .section__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   font-family: var(--font-mono);
   font-size: 0.8rem;
   letter-spacing: 0.1em;
   color: var(--color-accent);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.section__eyebrow::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-accent);
+  opacity: 0.35;
 }
 
 .section__title {
-  font-size: clamp(1.6rem, 5.5vw, 2.4rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 5.5vw, 2.5rem);
   line-height: 1.3;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   margin-bottom: var(--space-3);
 }
 
@@ -617,7 +645,8 @@ code {
 }
 
 .skill-card__title {
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
   letter-spacing: -0.01em;
 }
 
@@ -643,6 +672,133 @@ code {
 }
 
 /* ── 9. Projects ──────────────────────────────────────────── */
+/* 섹션 안에서 두 묶음(주요 프로젝트 / GitHub 저장소)을 나누는 소제목 */
+.projects__subtitle {
+  margin-bottom: var(--space-4);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+}
+
+.projects__note {
+  max-width: 54ch;
+  margin-bottom: var(--space-5);
+  color: var(--color-text-muted);
+}
+
+.projects__list {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.project {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* 격자 칸은 기본값(min-width: auto)이라 안쪽 내용의 최소 너비보다 좁아지지
+     않는다. 긴 영문 토큰 하나가 카드를 좁은 화면 밖으로 밀어내므로, 줄일 수
+     있게 열어 두고 필요하면 단어 안에서 끊는다. */
+  min-width: 0;
+  overflow-wrap: break-word;
+  padding: var(--space-5);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.project:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+}
+
+/* 좁은 화면에서는 제목과 기간이 세로로 쌓이고, 넓어지면 양끝으로 갈라진다 */
+.project__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.project__name {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  letter-spacing: -0.01em;
+}
+
+.project__tagline {
+  margin-top: var(--space-1);
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.project__period {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-accent);
+}
+
+.project__role {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+}
+
+.project__role-key {
+  flex-shrink: 0;
+  padding: 0.05rem 0.55rem;
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.project__points {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* 목록 표시를 직접 그린다. list-style 은 전역에서 꺼 두었다. */
+.project__points li {
+  position: relative;
+  padding-left: var(--space-4);
+  font-size: 0.94rem;
+  color: var(--color-text-muted);
+}
+
+.project__points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-accent);
+  border-radius: 50%;
+}
+
+.project__points strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.project__stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
 .projects__filters {
   display: flex;
   flex-wrap: wrap;
