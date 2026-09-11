@@ -1,6 +1,6 @@
 /* ============================================================
    projects.js — GitHub API 연동
-   흐름: 요청(이벤트) → status 상태 변경 → render() 가 화면을 다시 그림
+   흐름: 검색·필터·페이지 이동(이벤트) → state 변경 → render() 가 다시 그림
 
    상태는 아래 state 객체 한 곳에만 둔다. 화면을 바꾸는 곳도 render() 하나뿐이라,
    "지금 무엇이 보이는가" 를 알려면 state 만 보면 된다.
@@ -10,16 +10,25 @@
 
   const USERNAME = 'yuuri03';
   const REPOS_URL = `https://api.github.com/users/${USERNAME}/repos?per_page=100&sort=updated`;
+  const PER_PAGE = 6;
 
+  const toolbar = document.querySelector('#projects-toolbar');
+  const searchInput = document.querySelector('#repo-search');
+  const filterBox = document.querySelector('#project-filters');
+  const countBox = document.querySelector('#projects-count');
   const statusBox = document.querySelector('#projects-status');
   const grid = document.querySelector('#projects-grid');
-  const filterBox = document.querySelector('#project-filters');
+  const pager = document.querySelector('#projects-pager');
+  const anchor = document.querySelector('#github-repos');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   /* ── 상태 ────────────────────────────────────────────────── */
   const state = {
     status: 'idle', // 'idle' | 'loading' | 'success' | 'error'
     repos: [], // 받아 온 저장소 전체
     language: 'all', // 고른 언어 필터
+    query: '', // 검색어
+    page: 1, // 현재 페이지 (1부터)
     errorMessage: '',
   };
 
@@ -76,6 +85,32 @@
     return `저장소 목록을 받아오지 못했습니다. (HTTP ${response.status})`;
   };
 
+  /* ── 걸러내기 ────────────────────────────────────────────────
+     원본 state.repos 는 건드리지 않고 매번 새 배열을 만든다.
+     그래야 검색어를 지우거나 '전체' 로 돌아갈 때 다시 요청하지 않아도 된다. */
+  const selectVisible = () => {
+    const keyword = state.query.trim().toLowerCase();
+
+    const matched = state.repos
+      .filter(({ language }) => state.language === 'all' || language === state.language)
+      .filter(({ name, description, language }) => {
+        if (keyword === '') {
+          return true;
+        }
+        /* 이름·설명·언어 중 하나라도 검색어를 품고 있으면 남긴다 */
+        return [name, description, language]
+          .filter(Boolean)
+          .some((field) => field.toLowerCase().includes(keyword));
+      });
+
+    const totalPages = Math.max(1, Math.ceil(matched.length / PER_PAGE));
+    /* 검색으로 결과가 줄면 현재 페이지가 범위를 넘을 수 있다 */
+    const page = Math.min(state.page, totalPages);
+    const start = (page - 1) * PER_PAGE;
+
+    return { matched, totalPages, page, visible: matched.slice(start, start + PER_PAGE) };
+  };
+
   /* ── 렌더링 ──────────────────────────────────────────────── */
 
   /* 버튼 목록은 받아 온 저장소에서 만든다. 언어를 미리 적어 두면 새 언어로
@@ -93,7 +128,7 @@
     filterBox.innerHTML = ['all', ...languages]
       .map((language) => {
         const isActive = language === state.language;
-        const label = language === 'all' ? `전체 (${repos.length})` : language;
+        const label = language === 'all' ? '전체' : language;
 
         return `
           <button class="filter-btn${isActive ? ' is-active' : ''}" type="button"
@@ -123,11 +158,11 @@
     return `
       <article class="card">
         <div class="card__head">
-          <h3 class="card__title">
+          <h4 class="card__title">
             <a class="card__link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
               ${escapeHtml(name)}
             </a>
-          </h3>
+          </h4>
           <span class="card__lang">${escapeHtml(language || 'Text')}</span>
         </div>
         <p class="card__desc">${escapeHtml(description || '설명이 등록되지 않은 저장소입니다.')}</p>
@@ -141,6 +176,36 @@
     `;
   };
 
+  const renderPager = (page, totalPages) => {
+    if (totalPages <= 1) {
+      pager.hidden = true;
+      pager.innerHTML = '';
+      return;
+    }
+
+    const numbers = Array.from({ length: totalPages }, (unused, index) => index + 1)
+      .map((number) => {
+        const isCurrent = number === page;
+
+        return `
+          <button class="pager__btn${isCurrent ? ' is-current' : ''}" type="button"
+                  data-page="${number}"${isCurrent ? ' aria-current="page"' : ''}>
+            ${number}
+          </button>
+        `;
+      })
+      .join('');
+
+    pager.innerHTML = `
+      <button class="pager__btn pager__btn--arrow" type="button" data-page="${page - 1}"
+              aria-label="이전 페이지"${page === 1 ? ' disabled' : ''}>←</button>
+      ${numbers}
+      <button class="pager__btn pager__btn--arrow" type="button" data-page="${page + 1}"
+              aria-label="다음 페이지"${page === totalPages ? ' disabled' : ''}>→</button>
+    `;
+    pager.hidden = false;
+  };
+
   /* 로딩·에러·빈 상태가 모두 같은 틀을 쓴다. 다른 것은 스피너와 재시도 버튼뿐이다. */
   const renderState = ({ title, description, spinner = false, retry = false }) => `
     <div class="state">
@@ -151,26 +216,36 @@
     </div>
   `;
 
+  /* 목록 자리만 비우고 안내를 띄우는 경우가 잦아 따로 묶어 둔다 */
+  const showOnlyState = (markup) => {
+    grid.innerHTML = '';
+    pager.hidden = true;
+    countBox.hidden = true;
+    statusBox.innerHTML = markup;
+  };
+
   function render() {
     if (state.status === 'loading') {
-      filterBox.hidden = true;
-      grid.innerHTML = '';
-      statusBox.innerHTML = renderState({
-        title: '불러오는 중...',
-        description: 'GitHub API 에 저장소 목록을 요청하고 있습니다.',
-        spinner: true,
-      });
+      toolbar.hidden = true;
+      showOnlyState(
+        renderState({
+          title: '불러오는 중...',
+          description: 'GitHub API 에 저장소 목록을 요청하고 있습니다.',
+          spinner: true,
+        })
+      );
       return;
     }
 
     if (state.status === 'error') {
-      filterBox.hidden = true;
-      grid.innerHTML = '';
-      statusBox.innerHTML = renderState({
-        title: '프로젝트를 불러올 수 없습니다',
-        description: escapeHtml(state.errorMessage),
-        retry: true,
-      });
+      toolbar.hidden = true;
+      showOnlyState(
+        renderState({
+          title: '프로젝트를 불러올 수 없습니다',
+          description: escapeHtml(state.errorMessage),
+          retry: true,
+        })
+      );
       return;
     }
 
@@ -180,35 +255,41 @@
 
     /* 성공했지만 저장소가 하나도 없는 경우 */
     if (state.repos.length === 0) {
-      filterBox.hidden = true;
-      grid.innerHTML = '';
-      statusBox.innerHTML = renderState({
-        title: '표시할 프로젝트가 없습니다',
-        description: `GitHub 사용자 '${USERNAME}' 에 공개된 저장소가 아직 없습니다.`,
-      });
+      toolbar.hidden = true;
+      showOnlyState(
+        renderState({
+          title: '표시할 프로젝트가 없습니다',
+          description: `GitHub 사용자 '${USERNAME}' 에 공개된 저장소가 아직 없습니다.`,
+        })
+      );
       return;
     }
 
+    toolbar.hidden = false;
     renderFilters(state.repos);
 
-    /* 고른 언어만 남긴다. 원본 state.repos 는 그대로 두고 새 배열을 만든다.
-       그래야 필터를 '전체' 로 되돌릴 때 다시 요청하지 않아도 된다. */
-    const visible =
-      state.language === 'all'
-        ? state.repos
-        : state.repos.filter(({ language }) => language === state.language);
+    const { matched, totalPages, page, visible } = selectVisible();
 
-    if (visible.length === 0) {
-      grid.innerHTML = '';
-      statusBox.innerHTML = renderState({
-        title: '조건에 맞는 프로젝트가 없습니다',
-        description: `${escapeHtml(state.language)} 로 만든 저장소가 없습니다. 다른 언어를 골라 보세요.`,
-      });
+    /* 검색이나 필터 결과가 비었을 때 */
+    if (matched.length === 0) {
+      showOnlyState(
+        renderState({
+          title: '조건에 맞는 저장소가 없습니다',
+          description: '검색어를 줄이거나 다른 언어를 골라 보세요.',
+        })
+      );
       return;
     }
 
     statusBox.innerHTML = '';
+    countBox.textContent =
+      totalPages > 1
+        ? `${matched.length}개 중 ${(page - 1) * PER_PAGE + 1}–${(page - 1) * PER_PAGE + visible.length}번째`
+        : `${matched.length}개`;
+    countBox.hidden = false;
+
     grid.innerHTML = visible.map(createCard).join('');
+    renderPager(page, totalPages);
   }
 
   /* ── 데이터 불러오기 ─────────────────────────────────────── */
@@ -233,7 +314,8 @@
           new Date(b.updated_at) - new Date(a.updated_at)
       );
 
-      setState({ status: 'success', repos, language: 'all' });
+      setState({ status: 'success', repos, language: 'all', query: '', page: 1 });
+      searchInput.value = '';
     } catch (error) {
       /* fetch 는 네트워크가 끊겼을 때도 예외를 던진다.
          위에서 만든 안내 문장이 있으면 그대로 쓰고, 없으면 일반 문장으로 대신한다. */
@@ -256,7 +338,7 @@
     }
   });
 
-  /* 필터 버튼도 render() 가 다시 그리므로 같은 방식으로 바깥에서 한 번만 받는다.
+  /* 필터 버튼도 render() 가 다시 그리므로 같은 방식으로 위임한다.
      버튼은 상태만 바꾸고, 화면을 고치는 일은 render() 가 맡는다. */
   filterBox.addEventListener('click', (event) => {
     const button = event.target.closest('.filter-btn');
@@ -264,7 +346,29 @@
     if (!button) {
       return;
     }
-    setState({ language: button.dataset.language });
+    /* 조건이 바뀌면 첫 페이지부터 다시 본다 */
+    setState({ language: button.dataset.language, page: 1 });
+  });
+
+  searchInput.addEventListener('input', () => {
+    setState({ query: searchInput.value, page: 1 });
+  });
+
+  pager.addEventListener('click', (event) => {
+    const button = event.target.closest('.pager__btn');
+
+    if (!button || button.disabled) {
+      return;
+    }
+
+    setState({ page: Number(button.dataset.page) });
+
+    /* 페이지를 넘기면 목록의 머리가 화면 밖으로 밀려 있기 쉽다.
+       바뀐 목록이 보이도록 저장소 묶음의 시작으로 되돌린다. */
+    anchor.scrollIntoView({
+      behavior: reducedMotion.matches ? 'auto' : 'smooth',
+      block: 'start',
+    });
   });
 
   loadRepos();

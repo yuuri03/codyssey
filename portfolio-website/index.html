@@ -360,20 +360,31 @@
           </article>
         </div>
 
-        <h3 class="projects__subtitle">GitHub 저장소</h3>
+        <h3 class="projects__subtitle" id="github-repos">GitHub 저장소</h3>
         <p class="projects__note">
           GitHub API 로 <code>yuuri03</code> 의 공개 저장소를 불러와 그립니다.
-          아래 목록은 이 페이지를 열 때마다 새로 요청한 결과입니다.
+          이름·설명·언어로 검색할 수 있고, 여섯 개씩 나눠 보여 줍니다.
         </p>
 
-        <!-- 언어별 필터 버튼. 저장소를 받아 온 뒤 JS 가 채운다 -->
-        <div class="projects__filters" id="project-filters" role="group" aria-label="언어별 필터" hidden></div>
+        <!-- 검색과 언어 필터. 저장소를 받아 온 뒤에만 보인다 -->
+        <div class="projects__toolbar" id="projects-toolbar" hidden>
+          <div class="search">
+            <label class="search__label" for="repo-search">저장소 검색</label>
+            <input class="search__input" type="search" id="repo-search"
+                   placeholder="이름, 설명, 언어로 검색" autocomplete="off" />
+          </div>
+          <div class="projects__filters" id="project-filters" role="group" aria-label="언어별 필터" hidden></div>
+        </div>
+
+        <p class="projects__count" id="projects-count" role="status" hidden></p>
 
         <!-- 로딩 · 에러 · 빈 상태가 나타나는 자리 -->
         <div class="projects__status" id="projects-status" role="status" aria-live="polite"></div>
 
         <!-- 성공 상태의 카드가 그려지는 자리 -->
         <div class="projects__grid" id="projects-grid"></div>
+
+        <nav class="pager" id="projects-pager" aria-label="저장소 목록 페이지" hidden></nav>
       </div>
     </section>
 

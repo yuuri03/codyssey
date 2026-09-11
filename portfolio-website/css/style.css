@@ -799,11 +799,58 @@ code {
   border-top: 1px solid var(--color-border);
 }
 
+/* 검색창과 필터를 한 줄에 둔다. 좁아지면 검색창이 먼저 한 줄을 차지한다. */
+.projects__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.search {
+  display: grid;
+  gap: var(--space-2);
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.search__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.search__input {
+  width: 100%;
+  padding: var(--space-3);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.search__input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.search__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.projects__count {
+  margin-bottom: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
 .projects__filters {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-bottom: var(--space-5);
 }
 
 .filter-btn {
@@ -881,13 +928,18 @@ code {
 
 /* 카드 격자 — 화면 너비에 따라 열 수가 스스로 바뀐다.
    몇 개가 올지 모르는 목록이라 열 수를 못 박지 않고 auto-fit + minmax 를 쓴다. */
+/* 칸의 위쪽 한계를 24rem 처럼 고정값으로 두면, 브라우저가 그 값으로 열 수를
+   세는 바람에 세 칸이 들어갈 자리에 두 칸만 놓이고 오른쪽이 빈다.
+   칸은 1fr 로 남는 공간을 채우게 두고, 저장소가 하나뿐일 때 카드가 한 줄을 다
+   차지하지 않도록 하는 일은 카드 쪽 max-width 에 맡긴다. */
 .projects__grid {
   display: grid;
   gap: var(--space-4);
-  /* 위쪽 한계를 24rem 으로 잡아, 저장소가 하나뿐일 때 카드가 한 줄을 다 차지하지
-     않도록 한다. 열 수는 여전히 화면 너비에 따라 auto-fit 이 정한다. */
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 24rem));
-  justify-content: start;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.projects__grid .card {
+  max-width: 26rem;
 }
 
 .projects__grid:empty {
@@ -957,24 +1009,77 @@ code {
   color: var(--color-text-muted);
 }
 
+/* 페이지 넘김 */
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+
+.pager__btn {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 var(--space-2);
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color var(--transition), color var(--transition),
+    border-color var(--transition);
+}
+
+.pager__btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.pager__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pager__btn.is-current {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
 /* ── 10. Contact ──────────────────────────────────────────── */
 .contact {
   display: grid;
   gap: var(--space-6);
 }
 
+/* 폼과 나란히 놓이므로 같은 상자 모양을 준다.
+   안쪽 여백이 같아야 왼쪽 첫 줄과 폼의 첫 칸이 같은 높이에서 시작한다. */
 .contact__links {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-4);
   align-content: start;
+  padding: var(--space-5);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
 .contact__link-item {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding-bottom: var(--space-3);
+  padding-bottom: var(--space-4);
   border-bottom: 1px solid var(--color-border);
+}
+
+/* 마지막 항목의 밑줄은 목록이 끊긴 것처럼 보여 지운다 */
+.contact__link-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .contact__link-key {
@@ -1181,7 +1286,9 @@ code {
     gap: var(--space-7);
   }
 
-  .form {
+  /* 두 상자의 안쪽 여백을 같이 키워야 첫 줄 높이가 계속 맞는다 */
+  .form,
+  .contact__links {
     padding: var(--space-6);
   }
 
@@ -1211,7 +1318,7 @@ code {
   }
 
   .projects__grid {
-    grid-template-columns: repeat(auto-fit, minmax(18rem, 24rem));
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   }
 
   .scroll-top {
